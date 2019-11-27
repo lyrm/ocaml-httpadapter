@@ -1,13 +1,7 @@
-.PHONY: all build clean exec fmt
+.PHONY: all build clean
 
 build:
-	dune build src/main.exe
-
-fmt :
-	dune build @fmt
-
-all:
-	build
+	dune build
 
 clean:
 	dune clean
