@@ -1,0 +1,4 @@
+(library
+ (name httpadapter)
+ (public_name httpadapter)
+ (libraries cohttp httpaf uri))
