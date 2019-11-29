@@ -16,5 +16,5 @@ depends: [
   "httpaf" {>= "0.6.5"}
   "uri"    {>= "3.1.0"}
 ]
-synopsis: "Todo"
-description: "Todo"
+synopsis: "Http adapter for cohttp/httpaf"
+description: "Http adapter for cohttp/httpaf"
