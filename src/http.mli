@@ -191,7 +191,7 @@ module Request : sig
 end
 
 module Body : sig
-  type 'a t
+  type t
 
   (* These function doesn't take properly advantage of httpaf serialization.
     Some reworks is needed to correct that.

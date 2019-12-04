@@ -441,7 +441,7 @@ module Request = struct
 end
 
 module Body = struct
-  type 'a t = 'a Httpaf.Body.t
+  type t = [`read | `write] Httpaf.Body.t
 end
 
 module Accept = Cohttp.Accept

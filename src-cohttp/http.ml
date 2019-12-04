@@ -149,7 +149,7 @@ module Request = struct
 end
 
 module Body = struct
-  type _ t = Cohttp.Body.t
+  type t = Cohttp.Body.t
 end
 
 (* No equivalent module in Httpaf *)
