@@ -41,6 +41,18 @@ module Method = struct
     | `Other str -> `Other str
     | `PATCH -> `Other "patch"
 
+  let from_local : M.t -> t = function
+    | `GET -> `GET
+    | `HEAD -> `HEAD
+    | `POST -> `POST
+    | `PUT -> `PUT
+    | `DELETE -> `DELETE
+    | `CONNECT -> `CONNECT
+    | `OPTIONS -> `OPTIONS
+    | `TRACE -> `TRACE
+    | `Other "patch" -> `PATCH
+    | `Other str -> `Other str
+
   let to_string meth = to_local meth |> M.to_string
 
   let compare a b = compare (to_string a) (to_string b)
@@ -294,6 +306,18 @@ module Version = struct
     | "HTTP/1.0" -> `HTTP_1_0
     | "HTTP/1.1" -> `HTTP_1_1
     | s -> `Other s
+
+  let parse_version = V.of_string
+
+  let to_local : t -> V.t = function
+    | `HTTP_1_0 -> V.{ major = 1; minor = 0 }
+    | `HTTP_1_1 -> V.{ major = 1; minor = 1 }
+    | `Other s -> parse_version s
+
+  let from_local : V.t -> t = function
+    | { major = 1; minor = 0 } -> `HTTP_1_0
+    | { major = 1; minor = 1 } -> `HTTP_1_1
+    | other -> `Other (V.to_string other)
 end
 
 module Header = struct
@@ -348,6 +372,31 @@ module Request = struct
     version : Version.t;
   }
 
+  let _to_local : t -> R.t = function
+    | { headers; meth; resource; version } ->
+        R.
+          {
+            headers;
+            meth = Method.to_local meth;
+            target = resource;
+            version = Version.to_local version;
+          }
+
+  let from_local : R.t -> t = function
+    | R.{ headers; meth; target; version } ->
+        {
+          headers;
+          meth = Method.from_local meth;
+          resource = target;
+          version = Version.from_local version;
+        }
+
+  let make ?(version : Version.t = `HTTP_1_1)
+      ?(headers : Header.t = Header.init ()) meth uri =
+    let version = Version.to_local version in
+    let meth = Method.to_local meth in
+    from_local (R.create ~version ~headers meth (Uri.to_string uri))
+
   (* cohttp function *)
   let uri { resource; headers; meth; _ } =
     match resource with
@@ -389,6 +438,10 @@ module Request = struct
                   Uri.with_port uri (Uri.port host_uri)
             in
             uri )
+end
+
+module Body = struct
+  type 'a t = 'a Httpaf.Body.t
 end
 
 module Accept = Cohttp.Accept

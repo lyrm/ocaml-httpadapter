@@ -123,7 +123,7 @@ module Request = struct
   }
 
   let to_local : t -> R.t = function
-    | { headers; meth; resource; version } ->
+    { headers; meth; resource; version } ->
         {
           headers;
           meth;
@@ -131,8 +131,25 @@ module Request = struct
           version;
           encoding = Chunked (* to correct *);
         }
+  let from_local : R.t -> t = function
+    { headers; meth; resource; version ; _ } ->
+        {
+          headers;
+          meth;
+          resource;
+          version
+        }
+
 
   let uri t = R.uri (to_local t)
+
+  let make ?(version : Version.t = `HTTP_1_1) ?(headers = Header.init ()) (meth:Method.t)
+      uri =
+    from_local (R.make ~version ~headers ~meth uri)
+end
+
+module Body = struct
+  type _ t = Cohttp.Body.t
 end
 
 (* No equivalent module in Httpaf *)

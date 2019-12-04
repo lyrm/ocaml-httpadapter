@@ -186,6 +186,16 @@ module Request : sig
 
   (* cohttp function *)
   val uri : t -> Uri.t
+
+  val make : ?version:Version.t -> ?headers:Header.t -> Method.t -> Uri.t -> t
+end
+
+module Body : sig
+  type 'a t
+
+  (* These function doesn't take properly advantage of httpaf serialization.
+    Some reworks is needed to correct that.
+  val to_string : 'a t -> string*)
 end
 
 module Accept = Cohttp.Accept
