@@ -3,9 +3,9 @@ name:         "http"
 maintainer:   [ "Carine Morel <carine@tarides.com>" ]
 authors:      [ "Carine Morel <carine@tarides.com>" ]
 license:      "ISC"
-#homepage:     "https://github.com/lyrm/ocaml-httpadapter"
-#dev-repo:     "git+https://github.com/lyrm/ocaml-httpadapter.git"
-#bug-reports:  "https://github.com/lyrm/ocaml-httpadapter/issues"
+homepage:     "https://github.com/lyrm/ocaml-httpadapter"
+dev-repo:     "git+https://github.com/lyrm/ocaml-httpadapter.git"
+bug-reports:  "https://github.com/lyrm/ocaml-httpadapter/issues"
 synopsis:     "Http adapter for cohttp/httpaf"
 description:  "Http adapter for cohttp/httpaf"
 
