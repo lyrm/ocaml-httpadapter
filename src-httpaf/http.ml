@@ -441,7 +441,15 @@ module Request = struct
 end
 
 module Body = struct
-  type t = [`read | `write] Httpaf.Body.t
+  module B = Httpaf.Body
+
+  type t = [ `Empty | `Body of body ]
+
+  and body = [ `read | `write ] B.t
+
+  (* Hack, will not work with more body function. *)
+
+  let empty = `Empty
 end
 
 module Accept = Cohttp.Accept

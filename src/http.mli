@@ -191,11 +191,14 @@ module Request : sig
 end
 
 module Body : sig
-  type t
+  type t = [ `Empty | `Body of body ]
+
+  and body
 
   (* These function doesn't take properly advantage of httpaf serialization.
     Some reworks is needed to correct that.
   val to_string : 'a t -> string*)
+  val empty : t
 end
 
 module Accept = Cohttp.Accept
