@@ -1,2 +1,4 @@
 (lang dune 2.0)
-(name httpadapter)
+(using library_variants 0.1)
+(name http)
+(version dev)

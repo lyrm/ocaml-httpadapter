@@ -1,4 +1,7 @@
 (library
- (name httpadapter)
- (public_name httpadapter)
- (libraries cohttp httpaf uri))
+ (name http)
+ (public_name http)
+ (libraries cohttp uri)
+ (virtual_modules http)
+ (default_implementation http.cohttp)
+ (wrapped false))

@@ -1,0 +1,19 @@
+opam-version: "2.0"
+name:         "http"
+maintainer:   [ "Carine Morel <carine@tarides.com>" ]
+authors:      [ "Carine Morel <carine@tarides.com>" ]
+license:      "ISC"
+#homepage:     "https://github.com/lyrm/ocaml-httpadapter"
+#dev-repo:     "git+https://github.com/lyrm/ocaml-httpadapter.git"
+#bug-reports:  "https://github.com/lyrm/ocaml-httpadapter/issues"
+synopsis:     "Http adapter for cohttp/httpaf"
+description:  "Http adapter for cohttp/httpaf"
+
+build: [ "dune" "build" "-p" name "-j" jobs ]
+
+depends: [
+  "ocaml"  {>= "4.07.0"}
+  "dune"   {>= "2.0.0"}
+  "cohttp" {>= "2.4.0"}
+#  "httpaf" {>= "0.6.5"}
+]

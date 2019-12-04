@@ -1,0 +1,5 @@
+(library
+ (name http_cohttp)
+ (public_name http.cohttp)
+ (libraries cohttp)
+ (implements http))
