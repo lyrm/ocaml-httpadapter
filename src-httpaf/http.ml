@@ -27,7 +27,8 @@ module Method = struct
     | `OPTIONS
     | `TRACE
     | `Other of string
-    | `PATCH ]
+    | `PATCH
+    ]
 
   let to_local : t -> M.t = function
     | `GET -> `GET
@@ -65,7 +66,8 @@ module Status = struct
     [ `Continue
     | `Switching_protocols
     | `Processing (* cohttp only *)
-    | `Checkpoint (* cohttp only *) ]
+    | `Checkpoint (* cohttp only *)
+    ]
 
   type successful =
     [ `OK
@@ -77,7 +79,8 @@ module Status = struct
     | `Partial_content
     | `Multi_status (* cohttp only *)
     | `Already_reported (* cohttp only *)
-    | `Im_used (* cohttp only *) ]
+    | `Im_used (* cohttp only *)
+    ]
 
   type redirection =
     [ `Multiple_choices
@@ -88,7 +91,8 @@ module Status = struct
     | `Use_proxy
     | `Switch_proxy (* cohttp only *)
     | `Temporary_redirect
-    | `Resume_incomplete (* cohttp only *) ]
+    | `Resume_incomplete (* cohttp only *)
+    ]
 
   type client_error =
     [ `Bad_request
@@ -122,7 +126,8 @@ module Status = struct
     | `Retry_with (* cohttp only *)
     | `Blocked_by_windows_parental_controls (* cohttp only *)
     | `Wrong_exchange_server (* cohttp only *)
-    | `Client_closed_request (* cohttp only *) ]
+    | `Client_closed_request (* cohttp only *)
+    ]
 
   type server_error =
     [ `Internal_server_error
@@ -138,12 +143,21 @@ module Status = struct
     | `Not_extended (* cohttp only *)
     | `Network_authentication_required (* cohttp only *)
     | `Network_read_timeout_error (* cohttp only *)
-    | `Network_connect_timeout_error (* cohttp only *) ]
+    | `Network_connect_timeout_error (* cohttp only *)
+    ]
 
   type standard =
-    [ informational | successful | redirection | client_error | server_error ]
+    [ informational
+    | successful
+    | redirection
+    | client_error
+    | server_error
+    ]
 
-  type t = [ `Code of int | standard ]
+  type t =
+    [ `Code of int
+    | standard
+    ]
 
   let to_code : t -> int = function
     | `Continue -> 100
@@ -288,12 +302,90 @@ module Status = struct
     | 598 -> `Network_read_timeout_error
     | 599 -> `Network_connect_timeout_error
     | cod -> `Code cod
+
+  let to_local : t -> S.t = function
+    (* informational *)
+    | (`Continue | `Switching_protocols) as s -> s
+    | (`Processing | `Checkpoint) as s -> `Code (to_code s)
+    (* successful *)
+    | ( `OK | `Created | `Accepted | `Non_authoritative_information
+      | `No_content | `Reset_content | `Partial_content ) as s ->
+        s
+    | (`Multi_status | `Already_reported | `Im_used) as s -> `Code (to_code s)
+    (* redirection *)
+    | ( `Multiple_choices | `Moved_permanently | `Found | `See_other
+      | `Not_modified | `Use_proxy ) as s ->
+        s
+    | (`Switch_proxy | `Temporary_redirect | `Resume_incomplete) as s ->
+        `Code (to_code s)
+    (* client_error *)
+    | ( `Bad_request | `Unauthorized | `Payment_required | `Forbidden
+      | `Not_found | `Method_not_allowed | `Not_acceptable
+      | `Proxy_authentication_required | `Request_timeout | `Conflict | `Gone
+      | `Length_required | `Precondition_failed | `Unsupported_media_type
+      | `Expectation_failed | `Upgrade_required | `I_m_a_teapot
+      | `Enhance_your_calm ) as s ->
+        s
+    | `Request_entity_too_large -> `Payload_too_large
+    | `Request_uri_too_long -> `Uri_too_long
+    | `Requested_range_not_satisfiable -> `Range_not_satisfiable
+    | ( `Unprocessable_entity | `Locked | `Failed_dependency
+      | `Precondition_required | `Too_many_requests
+      | `Request_header_fields_too_large | `No_response | `Retry_with
+      | `Blocked_by_windows_parental_controls | `Wrong_exchange_server
+      | `Client_closed_request ) as s ->
+        `Code (to_code s)
+    (* server_error *)
+    | ( `Internal_server_error | `Not_implemented | `Bad_gateway
+      | `Service_unavailable | `Gateway_timeout | `Http_version_not_supported )
+      as s ->
+        s
+    | ( `Variant_also_negotiates | `Insufficient_storage | `Loop_detected
+      | `Bandwidth_limit_exceeded | `Not_extended
+      | `Network_authentication_required | `Network_read_timeout_error
+      | `Network_connect_timeout_error ) as s ->
+        `Code (to_code s)
+    (* other *)
+    | `Code c -> `Code c
+
+  let from_local : S.t -> t = function
+    (* information *)
+    | (`Continue | `Switching_protocols) as s -> s
+    (* successful *)
+    | ( `OK | `Created | `Accepted | `Non_authoritative_information
+      | `No_content | `Reset_content | `Partial_content ) as s ->
+        s
+    (* redirection *)
+    | ( `Multiple_choices | `Moved_permanently | `Found | `See_other
+      | `Not_modified | `Use_proxy | `Temporary_redirect ) as s ->
+        s
+    (* client_error *)
+    | ( `Bad_request | `Unauthorized | `Payment_required | `Forbidden
+      | `Not_found | `Method_not_allowed | `Not_acceptable
+      | `Proxy_authentication_required | `Request_timeout | `Conflict | `Gone
+      | `Length_required | `Precondition_failed | `Unsupported_media_type
+      | `Expectation_failed | `Upgrade_required | `I_m_a_teapot
+      | `Enhance_your_calm ) as s ->
+        s
+    | `Payload_too_large -> `Request_entity_too_large
+    | `Uri_too_long -> `Request_uri_too_long
+    | `Range_not_satisfiable -> `Requested_range_not_satisfiable
+    (* server_error *)
+    | ( `Internal_server_error | `Not_implemented | `Bad_gateway
+      | `Service_unavailable | `Gateway_timeout | `Http_version_not_supported )
+      as s ->
+        s
+    | `Code n -> of_code n
 end
 
 module Version = struct
   module V = Httpaf.Version
 
-  type t = [ `HTTP_1_0 | `HTTP_1_1 | `Other of string ]
+  type t =
+    [ `HTTP_1_0
+    | `HTTP_1_1
+    | `Other of string
+    ]
 
   let to_string : t -> string = function
     | `HTTP_1_0 -> "HTTP/1.0"
@@ -362,6 +454,25 @@ module Header = struct
   let compare a b = compare (to_string a) (to_string b)
 end
 
+module Body = struct
+  module B = Httpaf.Body
+
+  type t =
+    [ `Empty
+    | `String of string
+    | `Strings of string list
+    | `Stream of stream
+    ]
+
+  and stream = unit -> raw option
+
+  and raw = [ `read | `write ] B.t
+
+  let of_string s = `String s
+
+  let of_string_list s = `Strings s
+end
+
 module Request = struct
   module R = Httpaf.Request
 
@@ -370,10 +481,11 @@ module Request = struct
     meth : Method.t;
     resource : string;
     version : Version.t;
+    body : Body.t;
   }
 
   let _to_local : t -> R.t = function
-    | { headers; meth; resource; version } ->
+    | { headers; meth; resource; version; _ } ->
         R.
           {
             headers;
@@ -382,20 +494,22 @@ module Request = struct
             version = Version.to_local version;
           }
 
-  let from_local : R.t -> t = function
+  let from_local body : R.t -> t = function
     | R.{ headers; meth; target; version } ->
         {
           headers;
           meth = Method.from_local meth;
           resource = target;
           version = Version.from_local version;
+          body;
         }
 
   let make ?(version : Version.t = `HTTP_1_1)
-      ?(headers : Header.t = Header.init ()) meth uri =
+      ?(headers : Header.t = Header.init ()) ?(body : Body.t = `Empty) meth uri
+      =
     let version = Version.to_local version in
     let meth = Method.to_local meth in
-    from_local (R.create ~version ~headers meth (Uri.to_string uri))
+    from_local body (R.create ~version ~headers meth (Uri.to_string uri))
 
   (* cohttp function *)
   let uri { resource; headers; meth; _ } =
@@ -440,16 +554,30 @@ module Request = struct
             uri )
 end
 
-module Body = struct
-  module B = Httpaf.Body
+module Response = struct
+  module R = Httpaf.Response
 
-  type t = [ `Empty | `Body of body ]
+  type t = {
+    headers : Header.t;
+    status : Status.t;
+    version : Version.t;
+    body : Body.t;
+  }
 
-  and body = [ `read | `write ] B.t
+  let from_local body : R.t -> t = function
+    | R.{ headers; status; version; _ } ->
+        {
+          headers;
+          status = Status.from_local status;
+          version = Version.from_local version;
+          body;
+        }
 
-  (* Hack, will not work with more body function. *)
-
-  let empty = `Empty
+  let make ?(version : Version.t = `HTTP_1_1) ?(headers = Header.init ())
+      ?(body : Body.t = `Empty) (status : Status.t) =
+    from_local body
+      (R.create ~version:(Version.to_local version) ~headers
+         (Status.to_local status))
 end
 
 module Accept = Cohttp.Accept

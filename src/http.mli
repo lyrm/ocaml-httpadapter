@@ -25,7 +25,8 @@ module Method : sig
     | `OPTIONS
     | `TRACE
     | `Other of string
-    | `PATCH ]
+    | `PATCH
+    ]
 
   val compare : t -> t -> int
 
@@ -37,7 +38,8 @@ module Status : sig
     [ `Continue
     | `Switching_protocols
     | `Processing (* cohttp only *)
-    | `Checkpoint (* cohttp only *) ]
+    | `Checkpoint (* cohttp only *)
+    ]
 
   type successful =
     [ `OK
@@ -49,7 +51,8 @@ module Status : sig
     | `Partial_content
     | `Multi_status (* cohttp only *)
     | `Already_reported (* cohttp only *)
-    | `Im_used (* cohttp only *) ]
+    | `Im_used (* cohttp only *)
+    ]
 
   type redirection =
     [ `Multiple_choices
@@ -60,7 +63,8 @@ module Status : sig
     | `Use_proxy
     | `Switch_proxy (* cohttp only *)
     | `Temporary_redirect
-    | `Resume_incomplete (* cohttp only *) ]
+    | `Resume_incomplete (* cohttp only *)
+    ]
 
   type client_error =
     [ `Bad_request
@@ -94,7 +98,8 @@ module Status : sig
     | `Retry_with (* cohttp only *)
     | `Blocked_by_windows_parental_controls (* cohttp only *)
     | `Wrong_exchange_server (* cohttp only *)
-    | `Client_closed_request (* cohttp only *) ]
+    | `Client_closed_request (* cohttp only *)
+    ]
 
   type server_error =
     [ `Internal_server_error
@@ -110,12 +115,21 @@ module Status : sig
     | `Not_extended (* cohttp only *)
     | `Network_authentication_required (* cohttp only *)
     | `Network_read_timeout_error (* cohttp only *)
-    | `Network_connect_timeout_error (* cohttp only *) ]
+    | `Network_connect_timeout_error (* cohttp only *)
+    ]
 
   type standard =
-    [ informational | successful | redirection | client_error | server_error ]
+    [ informational
+    | successful
+    | redirection
+    | client_error
+    | server_error
+    ]
 
-  type t = [ `Code of int | standard ]
+  type t =
+    [ `Code of int
+    | standard
+    ]
 
   val to_code : t -> int
 
@@ -123,7 +137,11 @@ module Status : sig
 end
 
 module Version : sig
-  type t = [ `HTTP_1_0 | `HTTP_1_1 | `Other of string ]
+  type t =
+    [ `HTTP_1_0
+    | `HTTP_1_1
+    | `Other of string
+    ]
 
   val compare : t -> t -> int
 
@@ -175,30 +193,54 @@ module Header : sig
   val to_string : t -> string
 end
 
+module Body : sig
+  type t =
+    [ `Empty
+    | `String of string
+    | `Strings of string list
+    | `Stream of stream
+    ]
+
+  and stream = unit -> raw option
+
+  and raw
+
+  val of_string : string -> t
+
+  val of_string_list : string list -> t
+end
+
 module Request : sig
   type t = {
     headers : Header.t;
     meth : Method.t;
     resource : string;
     version : Version.t;
-        (*encoding: Transfer.encoding; (** transfer encoding of this HTTP request *)*)
+    body : Body.t;
   }
 
   (* cohttp function *)
   val uri : t -> Uri.t
 
-  val make : ?version:Version.t -> ?headers:Header.t -> Method.t -> Uri.t -> t
+  val make :
+    ?version:Version.t ->
+    ?headers:Header.t ->
+    ?body:Body.t ->
+    Method.t ->
+    Uri.t ->
+    t
 end
 
-module Body : sig
-  type t = [ `Empty | `Body of body ]
+module Response : sig
+  type t = {
+    headers : Header.t;
+    status : Status.t;
+    version : Version.t;
+    body : Body.t;
+  }
 
-  and body
-
-  (* These function doesn't take properly advantage of httpaf serialization.
-    Some reworks is needed to correct that.
-  val to_string : 'a t -> string*)
-  val empty : t
+  val make :
+    ?version:Version.t -> ?headers:Header.t -> ?body:Body.t -> Status.t -> t
 end
 
 module Accept = Cohttp.Accept

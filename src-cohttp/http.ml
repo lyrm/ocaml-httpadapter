@@ -27,7 +27,8 @@ module Method = struct
     | `OPTIONS
     | `TRACE
     | `Other of string
-    | `PATCH ]
+    | `PATCH
+    ]
 
   let compare = C.compare_method
 
@@ -59,7 +60,11 @@ end
 module Version = struct
   module V = Cohttp.Code
 
-  type t = [ `HTTP_1_0 | `HTTP_1_1 | `Other of string ]
+  type t =
+    [ `HTTP_1_0
+    | `HTTP_1_1
+    | `Other of string
+    ]
 
   let compare = V.compare_version
 
@@ -111,6 +116,26 @@ module Header = struct
   let to_string : t -> string = H.to_string
 end
 
+module Body = struct
+  module B = Cohttp.Body
+
+  type t =
+    [ `Empty
+    | `String of string
+    | `Strings of string list
+    | `Stream of stream
+    ]
+
+  and stream = unit -> raw option
+
+  (* todo *)
+  and raw = unit
+
+  let of_string s = `String s
+
+  let of_string_list s = `Strings s
+end
+
 module Request = struct
   module R = Cohttp.Request
 
@@ -119,11 +144,11 @@ module Request = struct
     meth : Method.t;
     resource : string;
     version : Version.t;
-        (*encoding: Transfer.encoding; (** transfer encoding of this HTTP request *)*)
+    body : Body.t;
   }
 
   let to_local : t -> R.t = function
-    | { headers; meth; resource; version } ->
+    | { headers; meth; resource; version; _ } ->
         {
           headers;
           meth;
@@ -132,25 +157,33 @@ module Request = struct
           encoding = Chunked (* to correct *);
         }
 
-  let from_local : R.t -> t = function
+  let from_local body : R.t -> t = function
     | { headers; meth; resource; version; _ } ->
-        { headers; meth; resource; version }
+        { headers; meth; resource; version; body }
 
   let uri t = R.uri (to_local t)
 
   let make ?(version : Version.t = `HTTP_1_1) ?(headers = Header.init ())
-      (meth : Method.t) uri =
-    from_local (R.make ~version ~headers ~meth uri)
+      ?(body : Body.t = `Empty) (meth : Method.t) uri =
+    from_local body (R.make ~version ~headers ~meth uri)
 end
 
-module Body = struct
-  module B = Cohttp.Body
+module Response = struct
+  module R = Cohttp.Response
 
-  type t = [ `Empty | `Body of body ]
+  type t = {
+    headers : Header.t;
+    status : Status.t;
+    version : Version.t;
+    body : Body.t;
+  }
 
-  and body = [ `String of string | `Strings of string list ]
+  let from_local body : R.t -> t = function
+    | { headers; status; version; _ } -> { headers; status; version; body }
 
-  let empty = `Empty
+  let make ?(version : Version.t = `HTTP_1_1) ?(headers = Header.init ())
+      ?(body : Body.t = `Empty) (status : Status.t) =
+    from_local body (R.make ~version ~status ~headers ())
 end
 
 (* No equivalent module in Httpaf *)
