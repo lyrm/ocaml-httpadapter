@@ -201,9 +201,7 @@ module Body : sig
     | `Stream of stream
     ]
 
-  and stream = unit -> raw option
-
-  and raw
+  and stream
 
   val of_string : string -> t
 
@@ -243,4 +241,11 @@ module Response : sig
     ?version:Version.t -> ?headers:Header.t -> ?body:Body.t -> Status.t -> t
 end
 
-module Accept = Cohttp.Accept
+module Server : sig
+
+  type callback = Request.t -> Response.t Lwt.t
+
+  (* For now, TCP only connection *)
+  (* To add: exn handler *)
+  val create : port:int ->  callback -> unit Lwt.t
+end

@@ -1,5 +1,5 @@
 (library
  (name http_cohttp)
  (public_name http.cohttp)
- (libraries cohttp)
+ (libraries cohttp cohttp-lwt-unix lwt)
  (implements http))

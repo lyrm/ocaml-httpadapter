@@ -1,5 +1,5 @@
 (library
  (name http_httpaf)
  (public_name http.httpaf)
- (libraries httpaf)
+ (libraries cohttp httpaf httpaf-lwt-unix lwt lwt.unix)
  (implements http))
