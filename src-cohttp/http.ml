@@ -132,6 +132,13 @@ module Body = struct
 
   let of_string s = `String s
 
+  (* Temporaly solution *)
+  let to_string : t -> string = function
+    | `Empty -> ""
+    | `String str -> str
+    | `Strings strs -> String.concat "" strs
+    | `Stream _ -> failwith "todo"
+
   let of_string_list s = `Strings s
 end
 

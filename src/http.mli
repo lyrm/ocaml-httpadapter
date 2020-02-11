@@ -205,6 +205,8 @@ module Body : sig
 
   val of_string : string -> t
 
+  val to_string : t -> string
+
   val of_string_list : string list -> t
 end
 

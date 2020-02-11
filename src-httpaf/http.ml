@@ -472,6 +472,13 @@ module Body = struct
 
   let of_string_list s = `Strings s
 
+  (* Temporaly solution *)
+  let to_string : t -> string = function
+    | `Empty -> ""
+    | `String str -> str
+    | `Strings strs -> String.concat "" strs
+    | `Stream _ -> failwith "todo"
+
   let str_body_from_local (body : [ `read ] B.t) : t =
     let str = ref "" in
     let rec on_read buff ~off:_ ~len:_ =
