@@ -247,6 +247,9 @@ module Server : sig
 
   type callback = Request.t -> Response.t Lwt.t
 
+  (* To think : add type conn = IP * port
+     or a counter*)
+
   (* For now, TCP only connection *)
   (* To add: exn handler *)
   val create : port:int ->  callback -> unit Lwt.t

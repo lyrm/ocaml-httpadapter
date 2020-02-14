@@ -478,15 +478,6 @@ module Body = struct
     | `String str -> str
     | `Strings strs -> String.concat "" strs
     | `Stream _ -> failwith "todo"
-
-  let str_body_from_local (body : [ `read ] B.t) : t =
-    let str = ref "" in
-    let rec on_read buff ~off:_ ~len:_ =
-      str := !str ^ Bigstringaf.to_string buff;
-      B.schedule_read body ~on_eof ~on_read
-    and on_eof () = () in
-    B.schedule_read body ~on_eof ~on_read;
-    `String !str
 end
 
 module Request = struct
@@ -610,31 +601,42 @@ module Server = struct
 
   open Lwt
 
-  let create ~port (callback : callback) : unit Lwt.t =
-    let listen_address = Unix.(ADDR_INET (inet6_addr_loopback, port)) in
-    let error_handler (_ : Unix.sockaddr) ?request:_ _error _f = ()
+  let read_body on_eof (body : [ `read ] Httpaf.Body.t) : unit =
+    let rec on_read acc buff ~off:_ ~len:_ =
+      let acc = acc ^ Bigstringaf.to_string buff in
+      Httpaf.Body.schedule_read body ~on_eof:(on_eof_ acc)
+        ~on_read:(on_read acc)
+    and on_eof_ acc () =
+      Httpaf.Body.close_reader body;
+      on_eof acc
     in
+    Httpaf.Body.schedule_read body ~on_eof:(on_eof_ "") ~on_read:(on_read "")
+
+  let create ~port (callback : callback) : unit Lwt.t =
+    let error_handler (_ : Unix.sockaddr) ?request:_ _error _f = () in
     let request_handler (_sockadd : Unix.sockaddr) (reqd : Httpaf.Reqd.t) : unit
         =
-      (* TODO : a better use of Httpaf body *)
-      let request_body_loc = Httpaf.Reqd.request_body reqd in
-      let request_body = Body.str_body_from_local request_body_loc in
-      let () = Httpaf.Body.close_reader request_body_loc in
-      let req = Request.from_local request_body (Httpaf.Reqd.request reqd) in
-      let to_run () =
-        callback req >|= fun resp ->
-        let body = resp.body in
-        let resp_loc = Response.to_local resp in
-        match body with
-        | `String str -> Httpaf.Reqd.respond_with_string reqd resp_loc str
-        | _ -> failwith "TODO"
-      in
-      Lwt.async to_run
+      Httpaf.Reqd.request_body reqd
+      |> read_body (fun str ->
+             Lwt.async (fun () ->
+                 Request.from_local (`String str) (Httpaf.Reqd.request reqd)
+                 |> callback
+                 >|= fun response ->
+                 let body = response.body in
+                 let resp_loc = Response.to_local response in
+                 match body with
+                 | `String str ->
+                     Httpaf.Reqd.respond_with_string reqd resp_loc str
+                 | _ -> failwith "TODO"))
+
     in
-    Lwt.async (fun () ->
-        Lwt_io.establish_server_with_client_socket listen_address
-          (S.create_connection_handler ~request_handler ~error_handler)
-        >|= fun _ -> ());
+
+    let listen sockaddr () =
+      Lwt_io.establish_server_with_client_socket sockaddr
+        (S.create_connection_handler ~request_handler ~error_handler)
+      >|= fun _server -> ()
+    in
+    Lwt.async (listen Unix.(ADDR_INET (inet_addr_any, port)));
     let forever, _ = Lwt.wait () in
     forever
 end
