@@ -463,21 +463,22 @@ module Body = struct
     | `Strings of string list
     | `Stream of stream
     ]
-
-  and stream = unit -> raw option
-
-  and raw = [ `read | `write ] B.t
+  and stream = string Lwt_stream.t
 
   let of_string s = `String s
 
+  let to_string : t -> string Lwt.t =  Lwt.(
+      function
+      | `Empty -> return ""
+      | `String s -> return s
+      | `Strings sl -> return (String.concat "" sl)
+      |`Stream s ->
+        let b = Buffer.create 1024 in
+        Lwt_stream.iter (Buffer.add_string b) s >>= fun () ->
+        return (Buffer.contents b))
+
   let of_string_list s = `Strings s
 
-  (* Temporaly solution *)
-  let to_string : t -> string = function
-    | `Empty -> ""
-    | `String str -> str
-    | `Strings strs -> String.concat "" strs
-    | `Stream _ -> failwith "todo"
 end
 
 module Request = struct
@@ -613,7 +614,16 @@ module Server = struct
     Httpaf.Body.schedule_read body ~on_eof:(on_eof_ "") ~on_read:(on_read "")
 
   let create ~port (callback : callback) : unit Lwt.t =
-    let error_handler (_ : Unix.sockaddr) ?request:_ _error _f = () in
+    let default_error_handler (_ : Unix.sockaddr) ?request:_ error handle =
+      Httpaf.(
+        let message =
+          match error with
+          | `Exn exn -> Printexc.to_string exn
+          | (#Status.client_error | #Status.server_error) as error -> Status.to_string error
+        in
+        let body = handle Headers.empty in
+        Body.write_string body message;
+        Body.close_writer body) in
     let request_handler (_sockadd : Unix.sockaddr) (reqd : Httpaf.Reqd.t) : unit
         =
       Httpaf.Reqd.request_body reqd
@@ -629,11 +639,11 @@ module Server = struct
                      Httpaf.Reqd.respond_with_string reqd resp_loc str
                  | _ -> failwith "TODO"))
 
-    in
+     in
 
     let listen sockaddr () =
       Lwt_io.establish_server_with_client_socket sockaddr
-        (S.create_connection_handler ~request_handler ~error_handler)
+        (S.create_connection_handler ~request_handler ~error_handler:default_error_handler)
       >|= fun _server -> ()
     in
     Lwt.async (listen Unix.(ADDR_INET (inet_addr_any, port)));

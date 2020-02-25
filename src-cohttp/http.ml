@@ -14,8 +14,6 @@
 *
 }}}*)
 
-open Sexplib0.Sexp_conv
-
 module Method = struct
   module C = Cohttp.Code
 
@@ -128,16 +126,19 @@ module Body = struct
     | `Stream of stream
     ]
 
-  and stream = string Lwt_stream.t sexp_opaque
+  and stream = string Lwt_stream.t
 
   let of_string s = `String s
 
-  (* Temporaly solution *)
-  let to_string : t -> string = function
-    | `Empty -> ""
-    | `String str -> str
-    | `Strings strs -> String.concat "" strs
-    | `Stream _ -> failwith "todo"
+  let to_string : t -> string Lwt.t =  Lwt.(
+      function
+      | `Empty -> return ""
+      | `String s -> return s
+      | `Strings sl -> return (String.concat "" sl)
+      |`Stream s ->
+        let b = Buffer.create 1024 in
+        Lwt_stream.iter (Buffer.add_string b) s >>= fun () ->
+        return (Buffer.contents b))
 
   let of_string_list s = `Strings s
 end

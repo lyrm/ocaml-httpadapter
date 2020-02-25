@@ -25,6 +25,7 @@ module Method : sig
     | `OPTIONS
     | `TRACE
     | `Other of string
+    (* Cohttp only : *)
     | `PATCH
     ]
 
@@ -205,7 +206,7 @@ module Body : sig
 
   val of_string : string -> t
 
-  val to_string : t -> string
+  val to_string : t -> string Lwt.t
 
   val of_string_list : string list -> t
 end
