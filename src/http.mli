@@ -25,8 +25,8 @@ module Method : sig
     | `OPTIONS
     | `TRACE
     | `Other of string
-    (* Cohttp only : *)
-    | `PATCH
+    | (* Cohttp only : *)
+      `PATCH
     ]
 
   val compare : t -> t -> int
@@ -185,9 +185,9 @@ module Header : sig
   val compare : t -> t -> int
 
   (* Incompatible definitions :
-       cohttp uses a function of type : name -> value list -> unit
-       httpaf uses a function of type : name -> value -> unit
-    val iter : (name -> value -> unit) -> t -> unit*)
+        cohttp uses a function of type : name -> value list -> unit
+        httpaf uses a function of type : name -> value -> unit
+     val iter : (name -> value -> unit) -> t -> unit*)
 
   val fold : (name -> value -> 'a -> 'a) -> 'a -> t -> 'a
 
@@ -245,7 +245,6 @@ module Response : sig
 end
 
 module Server : sig
-
   type callback = Request.t -> Response.t Lwt.t
 
   (* To think : add type conn = IP * port
@@ -253,5 +252,7 @@ module Server : sig
 
   (* For now, TCP only connection *)
   (* To add: exn handler *)
-  val create : port:int ->  callback -> unit Lwt.t
+  val create : port:int -> callback -> unit Lwt.t
 end
+
+module Accept = Cohttp.Accept
