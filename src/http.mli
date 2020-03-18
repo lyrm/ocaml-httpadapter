@@ -255,4 +255,74 @@ module Server : sig
   val create : port:int -> callback -> unit Lwt.t
 end
 
-module Accept = Cohttp.Accept
+module Accept : sig
+  type pv =
+    | T of string
+    | S of string
+
+  type p = string * pv
+
+  type media_range =
+    | MediaType of string * string
+    | AnyMediaSubtype of string
+    | AnyMedia
+
+  type charset =
+    | Charset of string
+    | AnyCharset
+
+  type encoding =
+    | Encoding of string
+    | Gzip
+    | Compress
+    | Deflate
+    | Identity
+    | AnyEncoding
+
+  (** Basic language range tag.
+    ["en-gb"] is represented as [Language ["en"; "gb"]].
+    @see <https://tools.ietf.org/html/rfc7231#section-5.3.5> the specification.
+*)
+  type language =
+    | Language of string list
+    | AnyLanguage
+
+  (** Accept-Encoding HTTP header parsing and generation *)
+
+  type q = int
+  (** Qualities are integers between 0 and 1000.
+    A header with ["q=0.7"] corresponds to a quality of [700].
+*)
+
+  type 'a qlist = (q * 'a) list
+  (** Lists, annotated with qualities. *)
+
+  val qsort : 'a qlist -> 'a qlist
+  (** Sort by quality, biggest first.
+    Respect the initial ordering.
+  *)
+
+  val media_ranges : string option -> (media_range * p list) qlist
+
+  val charsets : string option -> charset qlist
+
+  val encodings : string option -> encoding qlist
+
+  val languages : string option -> language qlist
+
+  val string_of_media_range : media_range * (string * pv) list -> q -> string
+
+  val string_of_charset : charset -> q -> string
+
+  val string_of_encoding : encoding -> q -> string
+
+  val string_of_language : language -> q -> string
+
+  val string_of_media_ranges : (media_range * p list) qlist -> string
+
+  val string_of_charsets : charset qlist -> string
+
+  val string_of_encodings : encoding qlist -> string
+
+  val string_of_languages : language qlist -> string
+end
