@@ -95,20 +95,22 @@ let param : param t =
   <|> (* OWS ; OWS [name]="[value]" *)
   lift2 (fun n v -> Kv (n, S v)) token (char '=' *> qs) )
 
+
+(* [Angstrom.many] *)
 let params = many param
 
 let rec get_q params =
   match params with [] -> 1000 | Q q :: _ -> q | _ :: r -> get_q r
 
 let cut_params params =
-  List.fold_left
-    (fun acc param ->
+  List.fold_right
+    (fun param acc ->
       match (param, acc) with
       | Q q, (1000, r) -> (q, r)
       | Q _, _ ->
           failwith "There are several \"q\" parameters in the same header."
       | Kv p, (q, r) -> (q, p :: r))
-    (1000, []) params
+    params (1000, [])
 
 (** Parser for values of Accept header.
     Example of value: text/html,application/xml;q=0.9*)
@@ -142,9 +144,8 @@ let media_ranges = eval_parser media_ranges_parser (AnyMedia, [])
     Example:
     Accept-charsets: iso-8859-5, unicode-1-1;q=0.8 *)
 let charset_value_parser =
-  ows
-  *> ( lift (fun t -> Charset (String.lowercase_ascii t)) token
-     <|> char '*' *> return AnyCharset )
+  ows *> (char '*' *> return AnyCharset
+  <|> lift (fun t -> Charset (String.lowercase_ascii t)) token)
 
 let charset_parser =
   lift2 (fun value q -> (q, value)) charset_value_parser (lift get_q params)
@@ -202,8 +203,7 @@ let languages = eval_parser languages_parser AnyLanguage
 let rec string_of_pl = function
   | [] -> ""
   | (k, T v) :: r -> sprintf ";%s=%s%s" k v (string_of_pl r)
-  | (k, S v) :: r ->
-      sprintf ";%s=\"%s\"%s" k (Stringext.quote v) (string_of_pl r)
+  | (k, S v) :: r -> sprintf ";%s=\"%s\"%s" k v (string_of_pl r)
 
 let string_of_q = function
   | q when q < 0 -> invalid_arg (Printf.sprintf "qvalue %d must be positive" q)

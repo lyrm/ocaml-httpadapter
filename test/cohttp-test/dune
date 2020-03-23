@@ -1,0 +1,7 @@
+(test
+ (name test)
+ (libraries alcotest http.cohttp)
+ (action (run %{test} -e -q --color=always)))
+
+(copy_files# ../*_test.ml)
+(copy_files# ../test.ml)
