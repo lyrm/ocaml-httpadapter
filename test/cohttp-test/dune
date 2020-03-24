@@ -1,7 +1,10 @@
 (test
  (name test)
  (libraries alcotest http.cohttp)
- (action (run %{test} -e -q --color=always)))
+ (action
+         (progn
+                (echo "\n\n******************* COHTTP tests ********************\n")
+                (run %{test} -e -q --color=always))))
 
 (copy_files# ../*_test.ml)
 (copy_files# ../test.ml)

@@ -58,11 +58,15 @@ let is_token = function
       false
   | _s -> true
 
+let is_eol =
+    function | '\r' | '\n' -> true | _ -> false
+
 let ows = skip is_space <|> return ()
 
 let token = take_while1 is_token
 
-let sep_by1_comma value_parser = sep_by1 (char ',') value_parser
+
+let sep_by1_comma value_parser = sep_by1 (char ',') value_parser <* end_of_input
 
 let eval_parser parser default_value = function
   | None -> [ (1000, default_value) ]
@@ -95,8 +99,6 @@ let param : param t =
   <|> (* OWS ; OWS [name]="[value]" *)
   lift2 (fun n v -> Kv (n, S v)) token (char '=' *> qs) )
 
-
-(* [Angstrom.many] *)
 let params = many param
 
 let rec get_q params =
@@ -144,8 +146,9 @@ let media_ranges = eval_parser media_ranges_parser (AnyMedia, [])
     Example:
     Accept-charsets: iso-8859-5, unicode-1-1;q=0.8 *)
 let charset_value_parser =
-  ows *> (char '*' *> return AnyCharset
-  <|> lift (fun t -> Charset (String.lowercase_ascii t)) token)
+  ows
+  *> ( char '*' *> return AnyCharset
+     <|> lift (fun t -> Charset (String.lowercase_ascii t)) token )
 
 let charset_parser =
   lift2 (fun value q -> (q, value)) charset_value_parser (lift get_q params)
