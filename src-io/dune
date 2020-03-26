@@ -1,0 +1,6 @@
+(library
+ (name http_io)
+ (public_name http_io)
+ (virtual_modules http_io)
+ (default_implementation http_io.lwt)
+ (wrapped false))

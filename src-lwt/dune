@@ -1,0 +1,5 @@
+(library
+ (name http_io_lwt)
+ (public_name http_io.lwt)
+ (libraries lwt lwt.unix)
+ (implements http_io))

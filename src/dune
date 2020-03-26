@@ -1,7 +1,7 @@
 (library
  (name http)
  (public_name http)
- (libraries lwt uri)
+ (libraries http_io uri)
  (virtual_modules http)
  (default_implementation http.cohttp)
  (wrapped false))

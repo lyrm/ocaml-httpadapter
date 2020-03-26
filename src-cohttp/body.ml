@@ -15,6 +15,7 @@
 }}}*)
 
 module B = Cohttp.Body
+module IO = Http_io
 
 type t =
   [ `Empty
@@ -27,15 +28,17 @@ and stream = string Lwt_stream.t
 
 let of_string s = `String s
 
-let to_string : t -> string Lwt.t =
-  Lwt.(
+let to_string : t -> string IO.t =
+  IO.(
     function
     | `Empty -> return ""
     | `String s -> return s
     | `Strings sl -> return (String.concat "" sl)
-    | `Stream s ->
-        let b = Buffer.create 1024 in
+    | `Stream _s ->
+        failwith "todo")
+    (* let b = Buffer.create 1024 in
         Lwt_stream.iter (Buffer.add_string b) s >>= fun () ->
-        return (Buffer.contents b))
+        return (Buffer.contents b))*)
+
 
 let of_string_list s = `Strings s

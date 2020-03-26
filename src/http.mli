@@ -206,7 +206,7 @@ module Body : sig
 
   val of_string : string -> t
 
-  val to_string : t -> string Lwt.t
+  val to_string : t -> string Http_io.t
 
   val of_string_list : string list -> t
 end
@@ -317,7 +317,7 @@ module Accept : sig
 end
 
 module Server : sig
-  type callback = Request.t -> Response.t Lwt.t
+  type callback = Request.t -> Response.t Http_io.t
 
   type error =
     [ `Bad_gateway
@@ -326,11 +326,11 @@ module Server : sig
     | `Internal_server_error
     ]
 
-  type error_callback = error -> Response.t Lwt.t
+  type error_callback = error -> Response.t Http_io.t
 
   (* To think : add type conn = IP * port
      or a counter*)
 
   (* For now, TCP only connection *)
-  val create : port:int -> callback -> error_callback -> unit Lwt.t
+  val create : port:int -> callback -> error_callback -> unit Http_io.t
 end
