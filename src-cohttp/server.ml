@@ -18,6 +18,15 @@
 
 type callback = Request.t -> Response.t Lwt.t
 
+type error =
+  [ `Bad_gateway
+  | `Bad_request
+  | `Exn of exn
+  | `Internal_server_error
+  ]
+
+type error_callback = error -> Response.t Lwt.t
+
 module IO_s :
   Cohttp_lwt.S.IO
     with type ic = Lwt_io.input_channel
@@ -198,22 +207,23 @@ let serve ?backlog ?timeout ?stop ~on_exn ~(port : int) callback =
   let callback flow ic oc =
     Lwt.catch
       (fun () -> callback flow ic oc)
-      (fun exn ->
-        on_exn exn;
-        Lwt.return_unit)
+      (fun exn -> on_exn exn >>= fun () -> Lwt.return_unit)
   in
   let sockaddr = Unix.(ADDR_INET (inet_addr_any, port)) in
   listen ?backlog sockaddr >>= init ?stop (process_accept ?timeout callback)
 
-let create ~(*?timeout ?backlog ?stop ?(on_exn = fun _ -> ())*) port
-    (callback : callback) =
-  let spec =
-    S.make
-      ~callback:(fun _conn request body ->
-        callback (Request.from_local body request) >|= fun resp ->
-        (Response.to_local resp, (resp.body : Cohttp_lwt.Body.t)))
-      ()
+let create ~(*?timeout ?backlog ?stop *) port (callback : callback)
+    (error_callback : error_callback) =
+  let local_callback _conn request body =
+    callback (Request.from_local body request) >|= fun resp ->
+    (Response.to_local resp, (resp.body : Cohttp_lwt.Body.t))
   in
-  serve (*?backlog ?timeout ?stop *)
-    ~on_exn:(fun _ -> ())
-    ~port (S.callback spec)
+
+  let spec = S.make ~callback:local_callback () in
+
+  (* TODO : finish error handling *)
+  let on_exn exn =
+    error_callback (`Exn exn) >>= fun resp ->
+    Body.to_string resp.body >>= fun body -> Lwt_io.print body
+  in
+  serve (*?backlog ?timeout ?stop *) ~on_exn ~port (S.callback spec)

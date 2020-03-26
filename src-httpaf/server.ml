@@ -18,6 +18,15 @@ module S = Httpaf_lwt_unix.Server
 
 type callback = Request.t -> Response.t Lwt.t
 
+type error =
+  [ `Bad_gateway
+  | `Bad_request
+  | `Exn of exn
+  | `Internal_server_error
+  ]
+
+type error_callback = error -> Response.t Lwt.t
+
 open Lwt
 
 let read_body on_eof (body : [ `read ] Httpaf.Body.t) : unit =
@@ -30,8 +39,9 @@ let read_body on_eof (body : [ `read ] Httpaf.Body.t) : unit =
   in
   Httpaf.Body.schedule_read body ~on_eof:(on_eof_ "") ~on_read:(on_read "")
 
-let create ~port (callback : callback) : unit Lwt.t =
-  let default_error_handler (_ : Unix.sockaddr) ?request:_ error handle =
+let create ~port (callback : callback) (error_callback : error_callback) :
+    unit Lwt.t =
+  (*let default_error_handler (_ : Unix.sockaddr) ?request:_ error handle =
     Httpaf.(
       let message =
         match error with
@@ -42,7 +52,8 @@ let create ~port (callback : callback) : unit Lwt.t =
       let body = handle Headers.empty in
       Body.write_string body message;
       Body.close_writer body)
-  in
+  in*)
+
   let request_handler (_sockadd : Unix.sockaddr) (reqd : Httpaf.Reqd.t) : unit =
     Httpaf.Reqd.request_body reqd
     |> read_body (fun str ->
@@ -58,10 +69,21 @@ let create ~port (callback : callback) : unit Lwt.t =
                | _ -> failwith "TODO"))
   in
 
+  let error_handler (_ : Unix.sockaddr) ?request:_ error start_response =
+    Lwt.async (fun () ->
+        error_callback error >|= fun response ->
+        let body = start_response response.headers in
+        ( match response.body with
+        | `String str -> Httpaf.Body.write_string body str
+        (* to correct for efficiently *)
+        | `Strings strs -> Httpaf.Body.write_string body (String.concat "" strs)
+        | _ -> failwith "TODO" );
+        Httpaf.Body.close_writer body)
+  in
+
   let listen sockaddr () =
     Lwt_io.establish_server_with_client_socket sockaddr
-      (S.create_connection_handler ~request_handler
-         ~error_handler:default_error_handler)
+      (S.create_connection_handler ~request_handler ~error_handler)
     >|= fun _server -> ()
   in
   Lwt.async (listen Unix.(ADDR_INET (inet_addr_any, port)));

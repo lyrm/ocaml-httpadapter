@@ -244,17 +244,6 @@ module Response : sig
     ?version:Version.t -> ?headers:Header.t -> ?body:Body.t -> Status.t -> t
 end
 
-module Server : sig
-  type callback = Request.t -> Response.t Lwt.t
-
-  (* To think : add type conn = IP * port
-     or a counter*)
-
-  (* For now, TCP only connection *)
-  (* To add: exn handler *)
-  val create : port:int -> callback -> unit Lwt.t
-end
-
 module Accept : sig
   type pv =
     | T of string
@@ -325,4 +314,23 @@ module Accept : sig
   val string_of_encodings : encoding qlist -> string
 
   val string_of_languages : language qlist -> string
+end
+
+module Server : sig
+  type callback = Request.t -> Response.t Lwt.t
+
+  type error =
+    [ `Bad_gateway
+    | `Bad_request
+    | `Exn of exn
+    | `Internal_server_error
+    ]
+
+  type error_callback = error -> Response.t Lwt.t
+
+  (* To think : add type conn = IP * port
+     or a counter*)
+
+  (* For now, TCP only connection *)
+  val create : port:int -> callback -> error_callback -> unit Lwt.t
 end
