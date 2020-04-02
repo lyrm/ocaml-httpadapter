@@ -135,6 +135,8 @@ module Status : sig
   val to_code : t -> int
 
   val of_code : int -> t
+
+  val to_string : t -> string
 end
 
 module Version : sig

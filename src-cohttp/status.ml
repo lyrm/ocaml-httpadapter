@@ -33,3 +33,5 @@ type t = S.status_code
 let to_code = S.code_of_status
 
 let of_code = S.status_of_code
+
+let to_string = S.string_of_status
