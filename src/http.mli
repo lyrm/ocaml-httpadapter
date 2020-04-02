@@ -334,5 +334,5 @@ module Server : sig
      or a counter*)
 
   (* For now, TCP only connection *)
-  val create : port:int -> callback -> error_callback -> unit Lwt.t
+  val create : port:int ->  ?error_callback:error_callback -> callback -> unit Lwt.t
 end

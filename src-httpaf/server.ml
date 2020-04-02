@@ -39,9 +39,9 @@ let read_body on_eof (body : [ `read ] Httpaf.Body.t) : unit =
   in
   Httpaf.Body.schedule_read body ~on_eof:(on_eof_ "") ~on_read:(on_read "")
 
-let create ~port (callback : callback) (error_callback : error_callback) :
-    unit Lwt.t =
-  (*let default_error_handler (_ : Unix.sockaddr) ?request:_ error handle =
+
+
+(*let default_error_handler (_ : Unix.sockaddr) ?request:_ error handle =
     Httpaf.(
       let message =
         match error with
@@ -53,6 +53,17 @@ let create ~port (callback : callback) (error_callback : error_callback) :
       Body.write_string body message;
       Body.close_writer body)
   in*)
+
+let default_error_callback error : Response.t Lwt.t =
+  let status, body =
+      (match error with
+       | (#Status.client_error | #Status.server_error) as error -> error, Status.to_string error
+       | `Exn exn     -> `Internal_server_error, Printexc.to_string exn) in
+  Lwt.return (Response.make ~body:(`String body) status)
+
+
+let create ~port ?error_callback:(error_callback=default_error_callback) (callback : callback)  :
+  unit Lwt.t =
 
   let request_handler (_sockadd : Unix.sockaddr) (reqd : Httpaf.Reqd.t) : unit =
     Httpaf.Reqd.request_body reqd

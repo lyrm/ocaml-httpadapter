@@ -212,8 +212,14 @@ let serve ?backlog ?timeout ?stop ~on_exn ~(port : int) callback =
   let sockaddr = Unix.(ADDR_INET (inet_addr_any, port)) in
   listen ?backlog sockaddr >>= init ?stop (process_accept ?timeout callback)
 
-let create ~(*?timeout ?backlog ?stop *) port (callback : callback)
-    (error_callback : error_callback) =
+let default_error_callback error : Response.t Lwt.t =
+  let status, body =
+      (match error with
+       | (#Status.client_error | #Status.server_error) as error -> error, Status.to_string error
+       | `Exn exn     -> `Internal_server_error, Printexc.to_string exn) in
+  Lwt.return (Response.make ~body:(`String body) status)
+
+let create ~(*?timeout ?backlog ?stop *) port ?error_callback:(error_callback=default_error_callback)  (callback : callback) =
   let local_callback _conn request body =
     callback (Request.from_local body request) >|= fun resp ->
     (Response.to_local resp, (resp.body : Cohttp_lwt.Body.t))
