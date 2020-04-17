@@ -39,32 +39,61 @@ let read_body on_eof (body : [ `read ] Httpaf.Body.t) : unit =
   in
   Httpaf.Body.schedule_read body ~on_eof:(on_eof_ "") ~on_read:(on_read "")
 
-
-
-(*let default_error_handler (_ : Unix.sockaddr) ?request:_ error handle =
-    Httpaf.(
-      let message =
-        match error with
-        | `Exn exn -> Printexc.to_string exn
-        | (#Status.client_error | #Status.server_error) as error ->
-            Status.to_string error
-      in
-      let body = handle Headers.empty in
-      Body.write_string body message;
-      Body.close_writer body)
-  in*)
-
 let default_error_callback error : Response.t Lwt.t =
   let status, body =
-      (match error with
-       | (#Status.client_error | #Status.server_error) as error -> error, Status.to_string error
-       | `Exn exn     -> `Internal_server_error, Printexc.to_string exn) in
+    match error with
+    | (#Status.client_error | #Status.server_error) as error ->
+        (error, Status.to_string error)
+    | `Exn exn -> (`Internal_server_error, Printexc.to_string exn)
+  in
   Lwt.return (Response.make ~body:(`String body) status)
 
+(* The few next functions are here to standarize encoding mangement
+   between cohttp and http/af.  *)
 
-let create ~port ?error_callback:(error_callback=default_error_callback) (callback : callback)  :
-  unit Lwt.t =
+(* This is a function coming from [Cohttp.Header] module. *)
+let parse_content_range s =
+  try
+    let start, fini, total =
+      Scanf.sscanf s "bytes %Ld-%Ld/%Ld" (fun start fini total ->
+          (start, fini, total))
+    in
+    Some (start, fini, total)
+  with Scanf.Scan_failure _ -> None
 
+(* Http/af does not look at "content-range" value to determine body
+   encoding. [content_range_to_content_length headers] add to
+   [headers] the header "content-length" with a value computed from
+   "content-range" header if it is present in [headers]. This is done
+   only if the headers "transfer-encoding" and "content-length" are
+   not already in [headers]. *)
+let content_range_to_content_length (resp : Response.t) =
+  let headers = resp.headers in
+  match
+    (Header.get headers "transfer-encoding", Header.get headers "content-length")
+  with
+  | Some _, _ | _, Some _ -> resp
+  | None, None -> (
+      match Header.get headers "content-range" with
+      | None -> resp
+      | Some range_s -> (
+          (* Cohttp code *)
+          match parse_content_range range_s with
+          | Some (start, fini, total) ->
+              (* some sanity checking before we act on these values *)
+              if fini < total && start <= total && 0L <= start && 0L <= total
+              then
+                let headers =
+                  Int64.add (Int64.sub fini start) 1L
+                  |> Int64.to_string
+                  |> Header.add headers "content-length"
+                in
+                { resp with headers }
+              else resp
+          | None -> resp ) )
+
+let create ~port ?(error_callback = default_error_callback)
+    (callback : callback) : unit Lwt.t =
   let request_handler (_sockadd : Unix.sockaddr) (reqd : Httpaf.Reqd.t) : unit =
     Httpaf.Reqd.request_body reqd
     |> read_body (fun str ->
@@ -72,6 +101,7 @@ let create ~port ?error_callback:(error_callback=default_error_callback) (callba
                Request.from_local (`String str) (Httpaf.Reqd.request reqd)
                |> callback
                >|= fun response ->
+               let response = content_range_to_content_length response in
                let body = response.body in
                let resp_loc = Response.to_local response in
                match body with
