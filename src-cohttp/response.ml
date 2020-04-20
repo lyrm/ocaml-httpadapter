@@ -27,14 +27,13 @@ let from_local body : R.t -> t = function
   | { headers; status; version; _ } -> { headers; status; version; body }
 
 let to_local : t -> R.t = function
-  | { headers; status; version; _ } ->
-      {
-        headers;
-        status;
-        version;
-        encoding = Cohttp.Transfer.Chunked;
-        flush = false;
-      }
+  | { headers; status; version; body } ->
+      let encoding =
+        Cohttp.Header.get_transfer_encoding headers |> function
+        | (Chunked | Fixed _) as encoding -> encoding
+        | Unknown -> Cohttp_lwt.Body.transfer_encoding body
+      in
+      { headers; status; version; encoding; flush = false }
 
 let make ?(version : Version.t = `HTTP_1_1) ?(headers = Header.init ())
     ?(body : Body.t = `Empty) (status : Status.t) =
