@@ -164,6 +164,9 @@ module Header : sig
 
   val of_list : (name * value) list -> t
 
+  (* to_list (of_list l) <> l for cohttp as the value of a same header
+     are but next to each other in the resulting list and the
+     different headers are in alphabetic order *)
   val to_list : t -> (name * value) list
 
   val add : t -> name -> value -> t
@@ -172,7 +175,7 @@ module Header : sig
 
   val add_list : t -> (name * value) list -> t
 
-  val add_multi : t -> (name * value list) list -> t
+  val add_multi : t -> name -> value list -> t
 
   val remove : t -> name -> t
 

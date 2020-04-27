@@ -34,7 +34,8 @@ let add_unless_exists = H.add_unless_exists
 
 let add_list = H.add_list
 
-let add_multi = H.add_multi
+let add_multi h name values : H.t =
+  List.fold_left (fun h value  -> H.add h name value) h values
 
 let remove = H.remove
 
