@@ -229,7 +229,7 @@ let printer_tests () =
 
 let suite_test =
   Alcotest.
-    ( "accept",
+    ( "Accept module",
       [
         test_case "Accept.media_ranges" `Quick media_ranges_tests;
         test_case "Accept.charsets" `Quick charsets_tests;
