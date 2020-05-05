@@ -139,7 +139,11 @@ module Status : sig
   val to_string : t -> string
 end
 
+(** HTTP version as defined in
+   {{:https://tools.ietf.org/html/rfc7230#section-2.6}this rfc}. *)
 module Version : sig
+  (* *)
+
   type t =
     [ `HTTP_1_0
     | `HTTP_1_1
@@ -149,8 +153,20 @@ module Version : sig
   val compare : t -> t -> int
 
   val to_string : t -> string
+  (** [to_string t] returns a string from [t] following the syntax
+     defined in
+     {{:https://tools.ietf.org/html/rfc7230#section-2.6}this rfc}. *)
 
   val of_string : string -> t
+  (** [of_string v] returns the version corresponding to [v] if [v]
+     follows the syntax defined in
+     {{:https://tools.ietf.org/html/rfc7230#section-2.6}this rfc} :
+     [HTTP-Version = "HTTP" "/" 1*DIGIT "." 1*DIGIT] *)
+
+  (** {b Invariants :}
+      - [to_string (of_string v) = v]
+      - [of_string (to_string t) = t]
+  *)
 end
 
 module Header : sig
@@ -189,14 +205,15 @@ module Header : sig
 
   val compare : t -> t -> int
 
-  (* Incompatible definitions :
-        cohttp uses a function of type : name -> value list -> unit
-        httpaf uses a function of type : name -> value -> unit
-     val iter : (name -> value -> unit) -> t -> unit*)
-
   val fold : (name -> value -> 'a -> 'a) -> 'a -> t -> 'a
 
   val to_string : t -> string
+
+  (* TODO Add [map] function and choose a [iter] functions *)
+  (* [iter] are incompatible definitions in cohttp and http/af :
+        cohttp uses a function of type : name -> value list -> unit
+        http/af uses a function of type : name -> value -> unit
+  *)
 end
 
 module Body : sig
@@ -337,5 +354,6 @@ module Server : sig
      or a counter*)
 
   (* For now, TCP only connection *)
-  val create : port:int ->  ?error_callback:error_callback -> callback -> unit Lwt.t
+  val create :
+    port:int -> ?error_callback:error_callback -> callback -> unit Lwt.t
 end
