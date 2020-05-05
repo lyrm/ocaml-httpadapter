@@ -130,3 +130,12 @@ let create ~port ?(error_callback = default_error_callback)
   Lwt.async (listen Unix.(ADDR_INET (inet_addr_any, port)));
   let forever, _ = Lwt.wait () in
   forever
+
+(* Need to optimize here, to better use http/af by beginning writting
+   the body when a [respond] function is called instead of only at the
+   very end of the process, in the [create] function. *)
+
+let respond ?headers ?(body=`Empty) status : Response.t Lwt.t =
+  match headers with
+  | None -> Lwt.return (Response.make ~body status)
+  | Some headers -> Lwt.return (Response.make ~body ~headers status)

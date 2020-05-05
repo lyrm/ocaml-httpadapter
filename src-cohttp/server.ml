@@ -219,6 +219,7 @@ let default_error_callback error : Response.t Lwt.t =
        | `Exn exn     -> `Internal_server_error, Printexc.to_string exn) in
   Lwt.return (Response.make ~body:(`String body) status)
 
+
 let create ~(*?timeout ?backlog ?stop *) port ?error_callback:(error_callback=default_error_callback)  (callback : callback) =
   let local_callback _conn request body =
     callback (Request.from_local body request) >|= fun resp ->
@@ -233,3 +234,7 @@ let create ~(*?timeout ?backlog ?stop *) port ?error_callback:(error_callback=de
     Body.to_string resp.body >>= fun body -> Lwt_io.print body
   in
   serve (*?backlog ?timeout ?stop *) ~on_exn ~port (S.callback spec)
+
+let respond ?headers ?(body=`Empty) status : Response.t Lwt.t =
+  S.respond ?headers ~body ~status () >|= fun (resp, body) ->
+  Response.from_local body resp

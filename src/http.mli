@@ -356,4 +356,9 @@ module Server : sig
   (* For now, TCP only connection *)
   val create :
     port:int -> ?error_callback:error_callback -> callback -> unit Lwt.t
+
+  val respond : ?headers:Header.t -> ?body:Body.t -> Status.t -> Response.t Lwt.t
+
+  (* val respond_with_string :
+     ?version:Version.t -> ?headers:Header.t -> string -> Status.t -> t*)
 end
