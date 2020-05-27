@@ -71,7 +71,7 @@ let sep_by1_comma value_parser = sep_by1 (char ',') value_parser <* end_of_input
 let eval_parser parser default_value = function
   | None -> [ (1000, default_value) ]
   | Some str -> (
-      match parse_string parser str with Ok v -> v | Error msg -> failwith msg )
+      match parse_string ~consume:All parser str with Ok v -> v | Error msg -> failwith msg )
 
 (** Parser for header parameters like defined in rfc https://tools.ietf.org/html/rfc7231#section-5.3.2 *)
 type param =
