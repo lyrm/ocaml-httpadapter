@@ -177,18 +177,13 @@ let remove_mem_tests () =
 *)
 let replace_tests () =
   Alcotest.(check (list string))
-    "Header.get_multi (Header.replace "
+    "Header.get_multi (Header.replace h k v) k = [] if Header.mem h k = false"
     []
     (get_multi (replace header "connection" "close" ) "connection");
   Alcotest.(check (list string))
-    ""
+    "Header.get_multi (Header.replace h k v) k = v if Header.mem h k = true"
     ["gzip"]
-    (get_multi (replace header "transfer-encoding" "gzip" ) "transfer-encoding");
-  Alcotest.(check (list string))
-    "truc"
-    ["image/*"]
-    (get_multi (replace header "accept" "image/*" ) "accept")
-
+    (get_multi (replace header "transfer-encoding" "gzip" ) "transfer-encoding")
 
 (* Tested invariants
    - compare (to_list l) (add_list (init ()) l) = 0
