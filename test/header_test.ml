@@ -118,14 +118,14 @@ let add_list_get_multi_tests () =
   Alcotest.(check (list string))
     "Header.get_multi (Header.add_list h [k, v; k', v']) k = vs@[v] if \
      Header.get_multi h k = vs "
-    ["application/xml"; "text/html"; "image/*"]
+    [ "application/xml"; "text/html"; "image/*" ]
     (get_multi
        (add_list header [ ("accept", "image/*"); ("connection", "close") ])
        "accept");
   Alcotest.(check (list string))
     "Header.get_multi (Header.add_list h [k, v; k, v']) k = vs@[v;v'] if \
      Header.get_multi h k = vs "
-    ["application/xml"; "text/html"; "image/*"; "application/*"]
+    [ "application/xml"; "text/html"; "image/*"; "application/*" ]
     (get_multi
        (add_list header [ ("accept", "image/*"); ("accept", "application/*") ])
        "accept")
@@ -167,8 +167,7 @@ let remove_mem_tests () =
     false
     (mem (remove header "accept") "accept");
   Alcotest.(check bool)
-    "Header.mem (Header.remove h n) n' = true if Header.mem h n' = true"
-    true
+    "Header.mem (Header.remove h n) n' = true if Header.mem h n' = true" true
     (mem (remove header "accept") "transfer-encoding")
 
 (* Tested invariants:
@@ -179,11 +178,11 @@ let replace_tests () =
   Alcotest.(check (list string))
     "Header.get_multi (Header.replace h k v) k = [] if Header.mem h k = false"
     []
-    (get_multi (replace header "connection" "close" ) "connection");
+    (get_multi (replace header "connection" "close") "connection");
   Alcotest.(check (list string))
     "Header.get_multi (Header.replace h k v) k = v if Header.mem h k = true"
-    ["gzip"]
-    (get_multi (replace header "transfer-encoding" "gzip" ) "transfer-encoding")
+    [ "gzip" ]
+    (get_multi (replace header "transfer-encoding" "gzip") "transfer-encoding")
 
 (* Tested invariants
    - compare (to_list l) (add_list (init ()) l) = 0
@@ -224,5 +223,5 @@ let suite_test =
         test_case "Header.to_list" `Quick to_list_tests;
         test_case "Header.remove" `Quick remove_mem_tests;
         test_case "Header.replace" `Quick replace_tests;
-        test_case "Header.compare and various invariants" `Quick compare_tests
+        test_case "Header.compare and various invariants" `Quick compare_tests;
       ] )

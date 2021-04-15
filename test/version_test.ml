@@ -9,9 +9,8 @@ module Alcotest = struct
     | `HTTP_1_1 -> Fmt.pf fmt "HTTP/1.1"
     | `Other s -> Fmt.pf fmt "%s" s
 
-  let version = Alcotest.testable fmt_version (=)
+  let version = Alcotest.testable fmt_version ( = )
 end
-
 
 (* Tests for Versions.compare functions *)
 let versions =
@@ -57,19 +56,16 @@ let compare_tests () =
 
 let of_string_tests () =
   Alcotest.(check version)
-    "Version.of_string \"HTTP/1.0\""
-    `HTTP_1_0
-    (of_string "HTTP/1.0");
+    "Version.of_string \"HTTP/1.0\"" `HTTP_1_0 (of_string "HTTP/1.0");
   Alcotest.(check version)
-    "Version.of_string \"HTTP/1.1\""
-    `HTTP_1_1
-    (of_string "HTTP/1.1");
+    "Version.of_string \"HTTP/1.1\"" `HTTP_1_1 (of_string "HTTP/1.1");
   Alcotest.(check version)
-    "Version.of_string \"HTTP/2.1\""
-    (`Other "HTTP/2.1")
-    (of_string "HTTP/2.1")
-
+    "Version.of_string \"HTTP/2.1\"" (`Other "HTTP/2.1") (of_string "HTTP/2.1")
 
 let suite_test =
-  Alcotest.("Version module", [ test_case "Version.compare" `Quick compare_tests;
-                               test_case "Version.of_string" `Quick of_string_tests])
+  Alcotest.
+    ( "Version module",
+      [
+        test_case "Version.compare" `Quick compare_tests;
+        test_case "Version.of_string" `Quick of_string_tests;
+      ] )

@@ -26,9 +26,7 @@ type t =
   | `OPTIONS
   | `TRACE
   | `Other of string
-  | `PATCH
-  ]
+  | `PATCH ]
 
 let compare = C.compare_method
-
 let to_string (meth : t) = C.string_of_method meth

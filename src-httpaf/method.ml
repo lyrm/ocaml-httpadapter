@@ -26,8 +26,7 @@ type t =
   | `OPTIONS
   | `TRACE
   | `Other of string
-  | `PATCH
-  ]
+  | `PATCH ]
 
 let to_local : t -> M.t = function
   | `GET -> `GET
@@ -54,5 +53,4 @@ let from_local : M.t -> t = function
   | `Other str -> `Other str
 
 let to_string meth = to_local meth |> M.to_string
-
 let compare a b = compare (to_string a) (to_string b)

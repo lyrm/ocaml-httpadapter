@@ -26,11 +26,9 @@ module Method : sig
     | `TRACE
     | `Other of string
     | (* Cohttp only : *)
-      `PATCH
-    ]
+      `PATCH ]
 
   val compare : t -> t -> int
-
   val to_string : t -> string
 end
 
@@ -39,8 +37,7 @@ module Status : sig
     [ `Continue
     | `Switching_protocols
     | `Processing (* cohttp only *)
-    | `Checkpoint (* cohttp only *)
-    ]
+    | `Checkpoint (* cohttp only *) ]
 
   type successful =
     [ `OK
@@ -52,8 +49,7 @@ module Status : sig
     | `Partial_content
     | `Multi_status (* cohttp only *)
     | `Already_reported (* cohttp only *)
-    | `Im_used (* cohttp only *)
-    ]
+    | `Im_used (* cohttp only *) ]
 
   type redirection =
     [ `Multiple_choices
@@ -64,8 +60,7 @@ module Status : sig
     | `Use_proxy
     | `Switch_proxy (* cohttp only *)
     | `Temporary_redirect
-    | `Permanent_redirect  (* cohttp only *)
-    ]
+    | `Permanent_redirect (* cohttp only *) ]
 
   type client_error =
     [ `Bad_request
@@ -99,8 +94,7 @@ module Status : sig
     | `Retry_with (* cohttp only *)
     | `Blocked_by_windows_parental_controls (* cohttp only *)
     | `Wrong_exchange_server (* cohttp only *)
-    | `Client_closed_request (* cohttp only *)
-    ]
+    | `Client_closed_request (* cohttp only *) ]
 
   type server_error =
     [ `Internal_server_error
@@ -116,97 +110,65 @@ module Status : sig
     | `Not_extended (* cohttp only *)
     | `Network_authentication_required (* cohttp only *)
     | `Network_read_timeout_error (* cohttp only *)
-    | `Network_connect_timeout_error (* cohttp only *)
-    ]
+    | `Network_connect_timeout_error (* cohttp only *) ]
 
   type standard =
-    [ informational
-    | successful
-    | redirection
-    | client_error
-    | server_error
-    ]
+    [ informational | successful | redirection | client_error | server_error ]
 
-  type t =
-    [ `Code of int
-    | standard
-    ]
+  type t = [ `Code of int | standard ]
 
   val to_code : t -> int
-
   val of_code : int -> t
-
   val to_string : t -> string
 end
 
 (** HTTP version as defined in
-   {{:https://tools.ietf.org/html/rfc7230#section-2.6}this rfc}. *)
+    {{:https://tools.ietf.org/html/rfc7230#section-2.6} this rfc}. *)
 module Version : sig
   (* *)
 
-  type t =
-    [ `HTTP_1_0
-    | `HTTP_1_1
-    | `Other of string
-    ]
+  type t = [ `HTTP_1_0 | `HTTP_1_1 | `Other of string ]
 
   val compare : t -> t -> int
 
   val to_string : t -> string
-  (** [to_string t] returns a string from [t] following the syntax
-     defined in
-     {{:https://tools.ietf.org/html/rfc7230#section-2.6}this rfc}. *)
+  (** [to_string t] returns a string from [t] following the syntax defined in
+      {{:https://tools.ietf.org/html/rfc7230#section-2.6} this rfc}. *)
 
   val of_string : string -> t
-  (** [of_string v] returns the version corresponding to [v] if [v]
-     follows the syntax defined in
-     {{:https://tools.ietf.org/html/rfc7230#section-2.6}this rfc} :
-     [HTTP-Version = "HTTP" "/" 1*DIGIT "." 1*DIGIT] *)
+  (** [of_string v] returns the version corresponding to [v] if [v] follows the
+      syntax defined in {{:https://tools.ietf.org/html/rfc7230#section-2.6} this
+      rfc} : [HTTP-Version = "HTTP" "/" 1*DIGIT "." 1*DIGIT] *)
 
   (** {b Invariants :}
+
       - [to_string (of_string v) = v]
-      - [of_string (to_string t) = t]
-  *)
+      - [of_string (to_string t) = t] *)
 end
 
 module Header : sig
   type t
-
   type name = string
-
   type value = string
 
   val init : unit -> t
-
   val of_list : (name * value) list -> t
 
   (* to_list (of_list l) <> l for cohttp as the value of a same header
      are but next to each other in the resulting list and the
      different headers are in alphabetic order *)
   val to_list : t -> (name * value) list
-
   val add : t -> name -> value -> t
-
   val add_unless_exists : t -> name -> value -> t
-
   val add_list : t -> (name * value) list -> t
-
   val add_multi : t -> name -> value list -> t
-
   val remove : t -> name -> t
-
   val replace : t -> name -> value -> t
-
   val mem : t -> name -> bool
-
   val get : t -> name -> value option
-
   val get_multi : t -> name -> value list
-
   val compare : t -> t -> int
-
   val fold : (name -> value -> 'a -> 'a) -> 'a -> t -> 'a
-
   val to_string : t -> string
 
   (* TODO Add [map] function and choose a [iter] functions *)
@@ -218,18 +180,12 @@ end
 
 module Body : sig
   type t =
-    [ `Empty
-    | `String of string
-    | `Strings of string list
-    | `Stream of stream
-    ]
+    [ `Empty | `String of string | `Strings of string list | `Stream of stream ]
 
   and stream
 
   val of_string : string -> t
-
   val to_string : t -> string Lwt.t
-
   val of_string_list : string list -> t
 end
 
@@ -267,7 +223,6 @@ module Response : sig
 end
 
 module Accept : sig
-
   type p = string * string
 
   type media_range =
@@ -275,9 +230,7 @@ module Accept : sig
     | AnyMediaSubtype of string
     | AnyMedia
 
-  type charset =
-    | Charset of string
-    | AnyCharset
+  type charset = Charset of string | AnyCharset
 
   type encoding =
     | Encoding of string
@@ -287,51 +240,36 @@ module Accept : sig
     | Identity
     | AnyEncoding
 
-  (** Basic language range tag.
-    ["en-gb"] is represented as [Language ["en"; "gb"]].
-    @see <https://tools.ietf.org/html/rfc7231#section-5.3.5> the specification.
-*)
-  type language =
-    | Language of string list
-    | AnyLanguage
+  (** Basic language range tag. ["en-gb"] is represented as
+      [Language \["en"; "gb"\]].
+
+      @see <https://tools.ietf.org/html/rfc7231#section-5.3.5> the
+      specification. *)
+  type language = Language of string list | AnyLanguage
 
   (** Accept-Encoding HTTP header parsing and generation *)
 
   type q = int
-  (** Qualities are integers between 0 and 1000.
-    A header with ["q=0.7"] corresponds to a quality of [700].
-*)
+  (** Qualities are integers between 0 and 1000. A header with ["q=0.7"]
+      corresponds to a quality of [700]. *)
 
   type 'a qlist = (q * 'a) list
   (** Lists, annotated with qualities. *)
 
   val qsort : 'a qlist -> 'a qlist
-  (** Sort by quality, biggest first.
-    Respect the initial ordering.
-  *)
+  (** Sort by quality, biggest first. Respect the initial ordering. *)
 
   val media_ranges : string option -> (media_range * p list) qlist
-
   val charsets : string option -> charset qlist
-
   val encodings : string option -> encoding qlist
-
   val languages : string option -> language qlist
-
   val string_of_media_range : media_range * p list -> q -> string
-
   val string_of_charset : charset -> q -> string
-
   val string_of_encoding : encoding -> q -> string
-
   val string_of_language : language -> q -> string
-
   val string_of_media_ranges : (media_range * p list) qlist -> string
-
   val string_of_charsets : charset qlist -> string
-
   val string_of_encodings : encoding qlist -> string
-
   val string_of_languages : language qlist -> string
 end
 
@@ -339,11 +277,7 @@ module Server : sig
   type callback = Request.t -> Response.t Lwt.t
 
   type error =
-    [ `Bad_gateway
-    | `Bad_request
-    | `Exn of exn
-    | `Internal_server_error
-    ]
+    [ `Bad_gateway | `Bad_request | `Exn of exn | `Internal_server_error ]
 
   type error_callback = error -> Response.t Lwt.t
 
@@ -354,7 +288,8 @@ module Server : sig
   val create :
     port:int -> ?error_callback:error_callback -> callback -> unit Lwt.t
 
-  val respond : ?headers:Header.t -> ?body:Body.t -> Status.t -> Response.t Lwt.t
+  val respond :
+    ?headers:Header.t -> ?body:Body.t -> Status.t -> Response.t Lwt.t
 
   (* val respond_with_string :
      ?version:Version.t -> ?headers:Header.t -> string -> Status.t -> t*)

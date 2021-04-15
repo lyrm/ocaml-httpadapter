@@ -11,7 +11,14 @@ type t = {
 
 let to_local : t -> R.t = function
   | { headers; meth; resource; version; _ } ->
-      { headers; meth; resource; version; encoding = Chunked (* to correct *); scheme = None }
+      {
+        headers;
+        meth;
+        resource;
+        version;
+        encoding = Chunked (* to correct *);
+        scheme = None;
+      }
 
 let from_local body : R.t -> t = function
   | { headers; meth; resource; version; _ } ->

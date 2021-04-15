@@ -16,11 +16,7 @@
 
 module V = Httpaf.Version
 
-type t =
-  [ `HTTP_1_0
-  | `HTTP_1_1
-  | `Other of string
-  ]
+type t = [ `HTTP_1_0 | `HTTP_1_1 | `Other of string ]
 
 let to_string : t -> string = function
   | `HTTP_1_0 -> "HTTP/1.0"

@@ -20,8 +20,7 @@ type informational =
   [ `Continue
   | `Switching_protocols
   | `Processing (* cohttp only *)
-  | `Checkpoint (* cohttp only *)
-  ]
+  | `Checkpoint (* cohttp only *) ]
 
 type successful =
   [ `OK
@@ -33,8 +32,7 @@ type successful =
   | `Partial_content
   | `Multi_status (* cohttp only *)
   | `Already_reported (* cohttp only *)
-  | `Im_used (* cohttp only *)
-  ]
+  | `Im_used (* cohttp only *) ]
 
 type redirection =
   [ `Multiple_choices
@@ -45,8 +43,7 @@ type redirection =
   | `Use_proxy
   | `Switch_proxy (* cohttp only *)
   | `Temporary_redirect
-  | `Permanent_redirect (* cohttp only *)
-  ]
+  | `Permanent_redirect (* cohttp only *) ]
 
 type client_error =
   [ `Bad_request
@@ -80,8 +77,7 @@ type client_error =
   | `Retry_with (* cohttp only *)
   | `Blocked_by_windows_parental_controls (* cohttp only *)
   | `Wrong_exchange_server (* cohttp only *)
-  | `Client_closed_request (* cohttp only *)
-  ]
+  | `Client_closed_request (* cohttp only *) ]
 
 type server_error =
   [ `Internal_server_error
@@ -97,21 +93,12 @@ type server_error =
   | `Not_extended (* cohttp only *)
   | `Network_authentication_required (* cohttp only *)
   | `Network_read_timeout_error (* cohttp only *)
-  | `Network_connect_timeout_error (* cohttp only *)
-  ]
+  | `Network_connect_timeout_error (* cohttp only *) ]
 
 type standard =
-  [ informational
-  | successful
-  | redirection
-  | client_error
-  | server_error
-  ]
+  [ informational | successful | redirection | client_error | server_error ]
 
-type t =
-  [ `Code of int
-  | standard
-  ]
+type t = [ `Code of int | standard ]
 
 let to_code : t -> int = function
   | `Continue -> 100
@@ -329,8 +316,7 @@ let from_local : S.t -> t = function
       s
   | `Code n -> of_code n
 
-
-let to_string: t -> string = function
+let to_string : t -> string = function
   | `Continue -> "100 Continue"
   | `Switching_protocols -> "101 Switching Protocols"
   | `Processing -> "102 Processing (WebDAV) (RFC 2518)"
@@ -338,7 +324,8 @@ let to_string: t -> string = function
   | `OK -> "200 OK"
   | `Created -> "201 Created"
   | `Accepted -> "202 Accepted"
-  | `Non_authoritative_information -> "203 Non-Authoritative Information (since HTTP/1.1)"
+  | `Non_authoritative_information ->
+      "203 Non-Authoritative Information (since HTTP/1.1)"
   | `No_content -> "204 No Content"
   | `Reset_content -> "205 Reset Content"
   | `Partial_content -> "206 Partial Content"
@@ -383,7 +370,8 @@ let to_string: t -> string = function
   | `Request_header_fields_too_large -> "431 Request Header Fields Too Large"
   | `No_response -> "444 No Response"
   | `Retry_with -> "449 Retry With"
-  | `Blocked_by_windows_parental_controls -> "450 Blocked by Windows Parental Controls"
+  | `Blocked_by_windows_parental_controls ->
+      "450 Blocked by Windows Parental Controls"
   | `Wrong_exchange_server -> "451 Wrong Exchange server"
   | `Client_closed_request -> "499 Client Closed Request"
   | `Internal_server_error -> "500 Internal Server Error"
@@ -395,7 +383,8 @@ let to_string: t -> string = function
   | `Variant_also_negotiates -> "506 Variant Also Negotiates (RFC 2295)"
   | `Insufficient_storage -> "507 Insufficient Storage (WebDAV) (RFC 4918)"
   | `Loop_detected -> "508 Loop Detected (WebDAV) (RFC 5842)"
-  | `Bandwidth_limit_exceeded -> "509 Bandwidth Limit Exceeded (Apache bw/limited extension)"
+  | `Bandwidth_limit_exceeded ->
+      "509 Bandwidth Limit Exceeded (Apache bw/limited extension)"
   | `Not_extended -> "510 Not Extended (RFC 2774)"
   | `Network_authentication_required -> "511 Network Authentication Required"
   | `Network_read_timeout_error -> "598 Network read timeout error"

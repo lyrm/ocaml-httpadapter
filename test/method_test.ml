@@ -50,7 +50,5 @@ let compare_tests () =
     "Method.compare" true
     (tests_false = meth_nb * (meth_nb - 1))
 
-
-
 let suite_test =
   Alcotest.("Method module", [ test_case "Method.compare" `Quick compare_tests ])

@@ -17,11 +17,7 @@
 module B = Httpaf.Body
 
 type t =
-  [ `Empty
-  | `String of string
-  | `Strings of string list
-  | `Stream of stream
-  ]
+  [ `Empty | `String of string | `Strings of string list | `Stream of stream ]
 
 and stream = string Lwt_stream.t
 

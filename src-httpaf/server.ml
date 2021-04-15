@@ -19,11 +19,7 @@ module S = Httpaf_lwt_unix.Server
 type callback = Request.t -> Response.t Lwt.t
 
 type error =
-  [ `Bad_gateway
-  | `Bad_request
-  | `Exn of exn
-  | `Internal_server_error
-  ]
+  [ `Bad_gateway | `Bad_request | `Exn of exn | `Internal_server_error ]
 
 type error_callback = error -> Response.t Lwt.t
 
@@ -90,7 +86,7 @@ let content_range_to_content_length (resp : Response.t) =
                 in
                 { resp with headers }
               else resp
-          | None -> resp ) )
+          | None -> resp))
 
 let create ~port ?(error_callback = default_error_callback)
     (callback : callback) : unit Lwt.t =
@@ -114,11 +110,11 @@ let create ~port ?(error_callback = default_error_callback)
     Lwt.async (fun () ->
         error_callback error >|= fun response ->
         let body = start_response response.headers in
-        ( match response.body with
+        (match response.body with
         | `String str -> Httpaf.Body.write_string body str
         (* to correct for efficiently *)
         | `Strings strs -> Httpaf.Body.write_string body (String.concat "" strs)
-        | _ -> failwith "TODO" );
+        | _ -> failwith "TODO");
         Httpaf.Body.close_writer body)
   in
 
@@ -135,7 +131,7 @@ let create ~port ?(error_callback = default_error_callback)
    the body when a [respond] function is called instead of only at the
    very end of the process, in the [create] function. *)
 
-let respond ?headers ?(body=`Empty) status : Response.t Lwt.t =
+let respond ?headers ?(body = `Empty) status : Response.t Lwt.t =
   match headers with
   | None -> Lwt.return (Response.make ~body status)
   | Some headers -> Lwt.return (Response.make ~body ~headers status)

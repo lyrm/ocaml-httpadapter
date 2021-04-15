@@ -19,11 +19,7 @@
 type callback = Request.t -> Response.t Lwt.t
 
 type error =
-  [ `Bad_gateway
-  | `Bad_request
-  | `Exn of exn
-  | `Internal_server_error
-  ]
+  [ `Bad_gateway | `Bad_request | `Exn of exn | `Internal_server_error ]
 
 type error_callback = error -> Response.t Lwt.t
 
@@ -33,25 +29,16 @@ module IO_s :
      and type oc = Lwt_io.output_channel
      and type conn = unit = struct
   type 'a t = 'a Lwt.t
-
   type error = exn
-
   type ic = Lwt_io.input_channel
-
   type oc = Lwt_io.output_channel
 
   let return = Lwt.return
-
   let ( >>= ) = Lwt.bind
-
   let read_line ic = Lwt_io.read_line_opt ic
-
   let read ic n = Lwt_io.read ?count:(Some n) ic
-
   let write oc str = Lwt_io.write oc str
-
   let flush oc = Lwt_io.flush oc
-
   let pp_error = Fmt.exn
 
   (*    exception IO_error of exn*)
@@ -70,11 +57,8 @@ open Lwt
 
 (* ** Conduit code to handle a limited number of connections ** *)
 let maxactive = ref None
-
 let active = ref 0
-
 let cond = Lwt_condition.create ()
-
 let connected () = incr active
 
 let disconnected () =
@@ -214,13 +198,15 @@ let serve ?backlog ?timeout ?stop ~on_exn ~(port : int) callback =
 
 let default_error_callback error : Response.t Lwt.t =
   let status, body =
-      (match error with
-       | (#Status.client_error | #Status.server_error) as error -> error, Status.to_string error
-       | `Exn exn     -> `Internal_server_error, Printexc.to_string exn) in
+    match error with
+    | (#Status.client_error | #Status.server_error) as error ->
+        (error, Status.to_string error)
+    | `Exn exn -> (`Internal_server_error, Printexc.to_string exn)
+  in
   Lwt.return (Response.make ~body:(`String body) status)
 
-
-let create ~(*?timeout ?backlog ?stop *) port ?error_callback:(error_callback=default_error_callback)  (callback : callback) =
+let create ~(*?timeout ?backlog ?stop *) port
+    ?(error_callback = default_error_callback) (callback : callback) =
   let local_callback _conn request body =
     callback (Request.from_local body request) >|= fun resp ->
     (Response.to_local resp, (resp.body : Cohttp_lwt.Body.t))
@@ -235,6 +221,6 @@ let create ~(*?timeout ?backlog ?stop *) port ?error_callback:(error_callback=de
   in
   serve (*?backlog ?timeout ?stop *) ~on_exn ~port (S.callback spec)
 
-let respond ?headers ?(body=`Empty) status : Response.t Lwt.t =
+let respond ?headers ?(body = `Empty) status : Response.t Lwt.t =
   S.respond ?headers ~body ~status () >|= fun (resp, body) ->
   Response.from_local body resp

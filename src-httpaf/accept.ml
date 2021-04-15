@@ -33,11 +33,8 @@ type encoding =
   | AnyEncoding
 
 type language = Language of string list | AnyLanguage
-
 type p = string * string
-
 type q = int
-
 type 'a qlist = (q * 'a) list
 
 (** Lexer *)
@@ -51,19 +48,16 @@ let is_token = function
   | _s -> true
 
 let is_eol = function '\r' | '\n' -> true | _ -> false
-
 let ows = skip is_space <|> return ()
-
 let token = take_while1 is_token
-
 let sep_by1_comma value_parser = sep_by1 (char ',') value_parser <* end_of_input
 
 let eval_parser parser default_value = function
   | None -> [ (1000, default_value) ]
-  | Some str ->
-  match parse_string ~consume:All parser str with
-  | Ok v -> v
-  | Error msg -> failwith msg
+  | Some str -> (
+      match parse_string ~consume:All parser str with
+      | Ok v -> v
+      | Error msg -> failwith msg)
 
 (** Parser for header parameters like defined in rfc
     https://tools.ietf.org/html/rfc7231#section-5.3.2 *)
@@ -146,7 +140,6 @@ let charset_parser =
   lift2 (fun value q -> (q, value)) charset_value_parser (lift get_q params)
 
 let charsets_parser = sep_by1_comma charset_parser
-
 let charsets = eval_parser charsets_parser AnyCharset
 
 (** Parser for values of Accept-encoding header. Example: Accept-Encoding:
@@ -170,7 +163,6 @@ let encoding_parser =
   lift2 (fun value q -> (q, value)) encoding_value_parser (lift get_q params)
 
 let encodings_parser = sep_by1_comma encoding_parser
-
 let encodings = eval_parser encodings_parser AnyEncoding
 
 (** Parser for values of Accept-language header. Example: Accept-Language: da,
@@ -187,7 +179,6 @@ let language_parser =
   lift2 (fun value q -> (q, value)) language_value_parser (lift get_q params)
 
 let languages_parser = sep_by1_comma language_parser
-
 let languages = eval_parser languages_parser AnyLanguage
 
 (** Other functions (from Cohttp.Accept) *)
@@ -195,8 +186,7 @@ let rec string_of_pl = function
   | [] -> ""
   | (k, v) :: r ->
       let e = Stringext.quote v in
-      if v = e
-      then sprintf ";%s=%s%s" k v (string_of_pl r)
+      if v = e then sprintf ";%s=%s%s" k v (string_of_pl r)
       else sprintf ";%s=\"%s\"%s" k e (string_of_pl r)
 
 let string_of_q = function
@@ -233,15 +223,13 @@ let string_of_list s_of_el =
   let rec aux s = function
     | [ (q, el) ] -> s ^ s_of_el el q
     | [] -> s
-    | (q, el) :: r -> aux (s ^ s_of_el el q ^ ",") r in
+    | (q, el) :: r -> aux (s ^ s_of_el el q ^ ",") r
+  in
   aux ""
 
 let string_of_media_ranges = string_of_list string_of_media_range
-
 let string_of_charsets = string_of_list string_of_charset
-
 let string_of_encodings = string_of_list string_of_encoding
-
 let string_of_languages = string_of_list string_of_language
 
 let qsort l =

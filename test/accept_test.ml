@@ -28,9 +28,9 @@ module Alcotest = struct
       media_ranges
 
   let fmt_charset fmt charset =
-    ( match charset with
+    (match charset with
     | Charset str -> "Charset " ^ str
-    | AnyCharset -> "Anycharset" )
+    | AnyCharset -> "Anycharset")
     |> Fmt.pf fmt "%s"
 
   let fmt_charsets fmt charsets = fmt_qlist fmt fmt_charset charsets
@@ -44,23 +44,19 @@ module Alcotest = struct
   let fmt_languages fmt languages = fmt_qlist fmt fmt_language languages
 
   let fmt_encoding fmt encoding =
-    ( match encoding with
+    (match encoding with
     | Encoding enc -> "Encoding " ^ enc
     | Gzip -> "gzip"
     | Compress -> "compress"
     | Deflate -> "deflate"
     | Identity -> "deflate"
-    | AnyEncoding -> "AnyEncoding" )
+    | AnyEncoding -> "AnyEncoding")
     |> Fmt.pf fmt "%s"
 
   let fmt_encodings fmt encodings = fmt_qlist fmt fmt_encoding encodings
-
   let media_ranges = Alcotest.testable fmt_media_ranges ( = )
-
   let charsets = Alcotest.testable fmt_charsets ( = )
-
   let encodings = Alcotest.testable fmt_encodings ( = )
-
   let languages = Alcotest.testable fmt_languages ( = )
 end
 

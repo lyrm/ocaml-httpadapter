@@ -17,17 +17,10 @@
 module B = Cohttp.Body
 
 type t =
-  [ `Empty
-  | `String of string
-  | `Strings of string list
-  | `Stream of stream
-  ]
+  [ `Empty | `String of string | `Strings of string list | `Stream of stream ]
 
 and stream = string Lwt_stream.t
 
 let of_string s = `String s
-
 let of_string_list s = `Strings s
-
-let to_string : t -> string Lwt.t =
-  Cohttp_lwt.Body.to_string
+let to_string : t -> string Lwt.t = Cohttp_lwt.Body.to_string

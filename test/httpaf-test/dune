@@ -2,9 +2,10 @@
  (name test)
  (libraries alcotest http.httpaf)
  (action
-         (progn
-                (echo "\n\n******************* HTTP/AF tests *******************\n")
-                (run %{test} -e -q --color=always))))
+  (progn
+   (echo "\n\n******************* HTTP/AF tests *******************\n")
+   (run %{test} -e -q --color=always))))
 
 (copy_files# ../*_test.ml)
+
 (copy_files# ../test.ml)

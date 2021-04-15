@@ -59,15 +59,15 @@ let uri { resource; headers; meth; _ } =
       | Some host ->
           let host_uri = Uri.of_string ("//" ^ host) in
           let uri = Uri.(with_host (of_string "") (host host_uri)) in
-          Uri.(with_port uri (port host_uri)) )
+          Uri.(with_port uri (port host_uri)))
   | authority when meth = `CONNECT -> Uri.of_string ("//" ^ authority)
   | path -> (
       let uri = Uri.of_string path in
       match Uri.scheme uri with
       | Some _ -> (
           (* we have an absoluteURI *)
-            Uri.(
-            match path uri with "" -> with_path uri "/" | _ -> uri) )
+          Uri.(
+            match path uri with "" -> with_path uri "/" | _ -> uri))
       | None ->
           let empty = Uri.of_string "" in
           let empty_base = Uri.of_string "///" in
@@ -90,4 +90,4 @@ let uri { resource; headers; meth; _ } =
                 let uri = Uri.with_host pqs (Uri.host host_uri) in
                 Uri.with_port uri (Uri.port host_uri)
           in
-          uri )
+          uri)
