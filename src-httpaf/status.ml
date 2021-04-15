@@ -45,7 +45,7 @@ type redirection =
   | `Use_proxy
   | `Switch_proxy (* cohttp only *)
   | `Temporary_redirect
-  | `Resume_incomplete (* cohttp only *)
+  | `Permanent_redirect (* cohttp only *)
   ]
 
 type client_error =
@@ -136,7 +136,7 @@ let to_code : t -> int = function
   | `Use_proxy -> 305
   | `Switch_proxy -> 306
   | `Temporary_redirect -> 307
-  | `Resume_incomplete -> 308
+  | `Permanent_redirect -> 308
   | `Bad_request -> 400
   | `Unauthorized -> 401
   | `Payment_required -> 402
@@ -208,7 +208,7 @@ let of_code : int -> t = function
   | 305 -> `Use_proxy
   | 306 -> `Switch_proxy
   | 307 -> `Temporary_redirect
-  | 308 -> `Resume_incomplete
+  | 308 -> `Permanent_redirect
   | 400 -> `Bad_request
   | 401 -> `Unauthorized
   | 402 -> `Payment_required
@@ -270,7 +270,7 @@ let to_local : t -> S.t = function
   | ( `Multiple_choices | `Moved_permanently | `Found | `See_other
     | `Not_modified | `Use_proxy ) as s ->
       s
-  | (`Switch_proxy | `Temporary_redirect | `Resume_incomplete) as s ->
+  | (`Switch_proxy | `Temporary_redirect | `Permanent_redirect) as s ->
       `Code (to_code s)
   (* client_error *)
   | ( `Bad_request | `Unauthorized | `Payment_required | `Forbidden | `Not_found
@@ -353,7 +353,7 @@ let to_string: t -> string = function
   | `Use_proxy -> "305 Use Proxy (since HTTP/1.1)"
   | `Switch_proxy -> "306 Switch Proxy"
   | `Temporary_redirect -> "307 Temporary Redirect (since HTTP/1.1)"
-  | `Resume_incomplete -> "308 Resume Incomplete"
+  | `Permanent_redirect -> "308 Permanent Redirect"
   | `Bad_request -> "400 Bad Request"
   | `Unauthorized -> "401 Unauthorized"
   | `Payment_required -> "402 Payment Required"

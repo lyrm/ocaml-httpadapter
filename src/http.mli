@@ -64,7 +64,7 @@ module Status : sig
     | `Use_proxy
     | `Switch_proxy (* cohttp only *)
     | `Temporary_redirect
-    | `Resume_incomplete (* cohttp only *)
+    | `Permanent_redirect  (* cohttp only *)
     ]
 
   type client_error =
@@ -267,11 +267,8 @@ module Response : sig
 end
 
 module Accept : sig
-  type pv =
-    | T of string
-    | S of string
 
-  type p = string * pv
+  type p = string * string
 
   type media_range =
     | MediaType of string * string
@@ -321,7 +318,7 @@ module Accept : sig
 
   val languages : string option -> language qlist
 
-  val string_of_media_range : media_range * (string * pv) list -> q -> string
+  val string_of_media_range : media_range * p list -> q -> string
 
   val string_of_charset : charset -> q -> string
 

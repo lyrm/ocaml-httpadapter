@@ -7,10 +7,11 @@ type t = {
   version : Version.t;
   body : Body.t;
 }
+(* TODO: add scheme and encoding option *)
 
 let to_local : t -> R.t = function
   | { headers; meth; resource; version; _ } ->
-      { headers; meth; resource; version; encoding = Chunked (* to correct *) }
+      { headers; meth; resource; version; encoding = Chunked (* to correct *); scheme = None }
 
 let from_local body : R.t -> t = function
   | { headers; meth; resource; version; _ } ->

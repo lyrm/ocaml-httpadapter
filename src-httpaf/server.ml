@@ -48,7 +48,7 @@ let default_error_callback error : Response.t Lwt.t =
   in
   Lwt.return (Response.make ~body:(`String body) status)
 
-(* The few next functions are here to standarize encoding mangement
+(* The few next functions are here to standarize encoding management
    between cohttp and http/af.  *)
 
 (* This is a function coming from [Cohttp.Header] module. *)
@@ -131,7 +131,7 @@ let create ~port ?(error_callback = default_error_callback)
   let forever, _ = Lwt.wait () in
   forever
 
-(* Need to optimize here, to better use http/af by beginning writting
+(* Need to be optimized here, to better use http/af by beginning writting
    the body when a [respond] function is called instead of only at the
    very end of the process, in the [create] function. *)
 

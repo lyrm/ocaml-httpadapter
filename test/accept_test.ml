@@ -5,11 +5,7 @@ open Http.Accept
 module Alcotest = struct
   include Alcotest
 
-  let fmt_pv fmt = function
-    | T str -> Fmt.pf fmt "%s" ("T " ^ str)
-    | S str -> Fmt.pf fmt "%s" ("S " ^ str)
-
-  let fmt_p = Fmt.pair ~sep:(Fmt.any "=") Fmt.string fmt_pv
+  let fmt_p = Fmt.pair ~sep:(Fmt.any "=") Fmt.string Fmt.string
 
   let fmt_qlist fmt fmt_elt qlist =
     Fmt.pf fmt "%a"
@@ -100,20 +96,20 @@ let media_ranges_tests () =
     (media_ranges (Some "text/html;q=0.666"));
   Alcotest.(check media_ranges)
     "text/html with several parameters"
-    [ (666, (MediaType ("text", "html"), [ ("a", T "42"); ("b", S "42") ])) ]
+    [ (666, (MediaType ("text", "html"), [ ("a", "42"); ("b", "42") ])) ]
     (media_ranges (Some "text/html;q=0.666;a=42;b=\"42\""));
   Alcotest.(check media_ranges)
     "Several values with parameters"
     [
       (1000, (MediaType ("text", "html"), []));
-      (900, (MediaType ("application", "xml"), [ ("a", T "42") ]));
+      (900, (MediaType ("application", "xml"), [ ("a", "42") ]));
     ]
     (media_ranges (Some "text/html,application/xml;q=0.9;a=42"));
   Alcotest.(check media_ranges)
     "Several values with allowed spaces"
     [
       (1000, (MediaType ("text", "html"), []));
-      (900, (MediaType ("application", "xml"), [ ("a", T "42") ]));
+      (900, (MediaType ("application", "xml"), [ ("a", "42") ]));
     ]
     (media_ranges (Some "text/html, application/xml; q=0.9; a=42"))
 
@@ -196,13 +192,13 @@ let languages_tests () =
 let printer_tests () =
   Alcotest.(check string)
     "Accept.string_of_media_range" "*/*;q=1;n1=v1;n2=\"v2\""
-    (string_of_media_range (AnyMedia, [ ("n1", T "v1"); ("n2", S "v2") ]) 1000);
+    (string_of_media_range (AnyMedia, [ ("n1", "v1"); ("n2", "\"v2\"") ]) 1000);
   Alcotest.(check string)
     "Accept.string_of_media_ranges"
     "*/*;q=1;n1=v1;n2=\"v2\",text/*;q=0.900,application/xml;q=0.666"
     (string_of_media_ranges
        [
-         (1000, (AnyMedia, [ ("n1", T "v1"); ("n2", S "v2") ]));
+         (1000, (AnyMedia, [ ("n1", "v1"); ("n2", "\"v2\"") ]));
          (900, (AnyMediaSubtype "text", []));
          (666, (MediaType ("application", "xml"), []));
        ]);

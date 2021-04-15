@@ -1,4 +1,2 @@
-(lang dune 2.0)
-(using library_variants 0.1)
+(lang dune 2.7)
 (name http)
-(version dev)

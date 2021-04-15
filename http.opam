@@ -15,9 +15,9 @@ build: [
 ]
 
 depends: [
-  "ocaml"  {>= "4.08.1"}
+  "ocaml"  {>= "4.10.1"}
   "dune"   {>= "2.0.0"}
   "alcotest" {with-test & >= "1.0.1"}
-  "cohttp" {>= "2.5.1"}
-  "httpaf" {>= "0.6.5"}
+  "cohttp" {>= "dev"}
+  "httpaf" {>= "0.6.6"}
 ]
